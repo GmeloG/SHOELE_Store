@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: sneakerstock_app
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: sneakerstock
+      DB_USER: sneaker_user
+      DB_PASS: sneaker_pass
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: sneakerstock_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: sneakerstock
+      MYSQL_USER: sneaker_user
+      MYSQL_PASSWORD: sneaker_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql/database.sql:/docker-entrypoint-initdb.d/database.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: sneakerstock_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: sneaker_user
+      PMA_PASSWORD: sneaker_pass
+      PMA_ARBITRARY: 1
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  db_data:
