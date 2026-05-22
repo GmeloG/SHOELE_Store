@@ -3,6 +3,8 @@
  * Shoele Store — Página de entrada
  * Ponto de partida com seleção de área por tipo de utilizador
  */
+
+// Ola
 require_once __DIR__ . '/includes/functions.php';
 
 // Redirecionar utilizadores já autenticados para a sua área
