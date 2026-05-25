@@ -7,13 +7,13 @@ Projeto académico — ISEP MEEC
 
 ## Tecnologias
 
-| Camada         | Tecnologia                |
-|---------------|--------------------------|
-| Frontend      | HTML5, CSS3, JavaScript  |
-| Backend       | PHP 8.1                  |
-| Base de dados | MySQL 8.0                |
-| Ambiente      | Docker + Docker Compose  |
-| DB Admin      | phpMyAdmin               |
+| Camada        | Tecnologia              |
+| ------------- | ----------------------- |
+| Frontend      | HTML5, CSS3, JavaScript |
+| Backend       | PHP 8.1                 |
+| Base de dados | MySQL 8.0               |
+| Ambiente      | Docker + Docker Compose |
+| DB Admin      | phpMyAdmin              |
 
 ---
 
@@ -41,15 +41,13 @@ docker compose logs -f db   # Ver quando a DB estiver pronta
 
 ### 3. Aceder à aplicação
 
-| Serviço              | URL                                |
-|---------------------|------------------------------------|
-| Página de entrada   | http://localhost:8080/entrada.php  |
-| Loja / Catálogo     | http://localhost:8080              |
-| Admin               | http://localhost:8080/admin/       |
-| POS                 | http://localhost:8080/pos/         |
-| phpMyAdmin          | http://localhost:8081              |
+| Serviço         | URL                   |
+| --------------- | --------------------- |
+| Loja / Catálogo | http://localhost:8080 |
+| phpMyAdmin      | http://localhost:8081 |
 
 **Credenciais phpMyAdmin:**
+
 - Utilizador: `sneaker_user` / Password: `sneaker_pass`
 
 ---
@@ -58,11 +56,11 @@ docker compose logs -f db   # Ver quando a DB estiver pronta
 
 Os utilizadores são criados automaticamente na primeira execução.
 
-| Role          | Email                        | Password   |
-|--------------|------------------------------|------------|
-| Administrador | admin@shoele_store.test      | admin123   |
-| Gestor        | gestor@shoele_store.test     | gestor123  |
-| Cliente       | cliente@shoele_store.test    | cliente123 |
+| Role          | Email                     | Password   |
+| ------------- | ------------------------- | ---------- |
+| Administrador | admin@shoele_store.test   | admin123   |
+| Gestor        | gestor@shoele_store.test  | gestor123  |
+| Cliente       | cliente@shoele_store.test | cliente123 |
 
 ---
 
@@ -157,13 +155,14 @@ sneakerstock/
 ### Roles
 
 | Role          | Catálogo | Carrinho | Checkout | Admin | POS | Utilizadores |
-|--------------|----------|----------|----------|-------|-----|--------------|
+| ------------- | -------- | -------- | -------- | ----- | --- | ------------ |
 | Visitante     | ✅       | ✅       | ❌       | ❌    | ❌  | ❌           |
 | Cliente       | ✅       | ✅       | ✅       | ❌    | ❌  | ❌           |
 | Gestor        | ✅       | —        | —        | ✅    | ✅  | ❌           |
 | Administrador | ✅       | —        | —        | ✅    | ✅  | ✅           |
 
 ### Fluxo de autenticação
+
 - Passwords guardadas com `password_hash()` (bcrypt, custo 10)
 - Verificação com `password_verify()`
 - Sessão armazenada em `$_SESSION['user']`
@@ -172,6 +171,7 @@ sneakerstock/
 - Checkout sem login → redireciona para login com mensagem flash
 
 ### Navbar dinâmica
+
 - **Sem login:** Catálogo, Login, Registar
 - **Cliente:** Catálogo, Minhas Encomendas, Carrinho, Logout
 - **Gestor:** Dashboard, Produtos, Encomendas, Relatórios, POS, Logout
@@ -182,6 +182,7 @@ sneakerstock/
 ## Funcionalidades
 
 ### Loja Online
+
 - Catálogo com filtro por marca
 - Página de produto com seleção de cor/tamanho e stock em tempo real
 - Carrinho (disponível mesmo sem login)
@@ -190,6 +191,7 @@ sneakerstock/
 - "Minhas Encomendas" para clientes autenticados
 
 ### Administração (`/admin/`)
+
 - Dashboard com estatísticas e alertas de stock baixo
 - CRUD de produtos com upload de imagem e variantes
 - Encomendas: lista, detalhe, alteração de estado (cancelamento devolve stock)
@@ -197,27 +199,29 @@ sneakerstock/
 - **Gestão de utilizadores** (só Administrador): criar, editar, eliminar, definir role
 
 ### Ponto de Venda (`/pos/`)
+
 - Interface rápida para vendas em loja
 - Modal de seleção de variante com stock em tempo real
 - Registo de venda + atualização automática de stock
 
 ### Base de Dados
 
-| Tabela              | Descrição                                     |
-|--------------------|-----------------------------------------------|
-| `products`         | Catálogo de sapatilhas                        |
-| `product_variants` | Stock por produto + cor + tamanho             |
-| `users`            | Utilizadores registados (admin/gestor/cliente)|
-| `customers`        | Dados de entrega das encomendas               |
-| `orders`           | Encomendas online (com `user_id`)             |
-| `order_items`      | Itens de cada encomenda                       |
-| `sales`            | Vendas no POS                                 |
-| `sale_items`       | Itens de cada venda POS                       |
-| `stock_movements`  | Auditoria completa de movimentos de stock     |
+| Tabela             | Descrição                                      |
+| ------------------ | ---------------------------------------------- |
+| `products`         | Catálogo de sapatilhas                         |
+| `product_variants` | Stock por produto + cor + tamanho              |
+| `users`            | Utilizadores registados (admin/gestor/cliente) |
+| `customers`        | Dados de entrega das encomendas                |
+| `orders`           | Encomendas online (com `user_id`)              |
+| `order_items`      | Itens de cada encomenda                        |
+| `sales`            | Vendas no POS                                  |
+| `sale_items`       | Itens de cada venda POS                        |
+| `stock_movements`  | Auditoria completa de movimentos de stock      |
 
 ---
 
 ## Segurança
+
 - PDO + prepared statements (proteção SQL Injection)
 - `htmlspecialchars` em todo o output (proteção XSS)
 - `password_hash` / `password_verify` para passwords
@@ -229,6 +233,7 @@ sneakerstock/
 ---
 
 ## Notas
+
 - Não são processados pagamentos reais (projeto académico)
 - Os utilizadores de teste são criados automaticamente na primeira execução
 - Para atualizar uma BD existente sem reiniciar: correr `migration_auth.sql`
