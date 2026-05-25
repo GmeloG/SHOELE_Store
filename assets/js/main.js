@@ -2,6 +2,19 @@
    Shoele Store — JavaScript principal
    ================================================================ */
 
+// ─── Header Search ───────────────────────────────────────────────
+// Em páginas que não o catálogo, redireciona para /?q=termo no Enter
+
+(function () {
+    const inp = document.getElementById('header-search');
+    if (!inp || document.getElementById('products-grid')) return;
+    inp.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && this.value.trim()) {
+            window.location.href = '/?q=' + encodeURIComponent(this.value.trim());
+        }
+    });
+})();
+
 // ─── Toast Notifications ─────────────────────────────────────────
 
 function showToast(message, type = 'info') {

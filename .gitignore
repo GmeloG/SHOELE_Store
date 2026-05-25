@@ -1,0 +1,8 @@
+# Ignore files and directories that should not be committed to the repository
+.claude/
+.vscode/
+# Ignore log files
+*.log
+# Ignore temporary files
+*.tmp
+# Ignore compiled files

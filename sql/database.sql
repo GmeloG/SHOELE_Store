@@ -74,6 +74,12 @@ CREATE TABLE users (
     UNIQUE KEY uq_user_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Utilizadores de teste (passwords em bcrypt)
+INSERT INTO users (nome, email, password, role) VALUES
+('Administrador',  'admin@shoelestore.test',   '$2y$10$RJ6PBkmE/h7KZukPYcqa3uwF8ImZ1u4DiaRbh293sNmiXLN1GctHu', 'admin'),
+('Gestor',         'gestor@shoelestore.test',  '$2y$10$jUPj7pT7MOXtWDfR5PaVpOD5wtiWnDw0mfU3Shxb0zrMo0Dh2tAF.', 'gestor'),
+('Cliente Teste',  'cliente@shoelestore.test', '$2y$10$7c01fw/g0cM0VhxFDiEVnO3Sj8bNNHmUgkmYzLJFTibQ4KJQbOq56', 'cliente');
+
 -- ------------------------------------------------------------
 -- Tabela: orders (encomendas online)
 -- ------------------------------------------------------------

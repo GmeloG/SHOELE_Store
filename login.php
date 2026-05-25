@@ -112,16 +112,16 @@ include __DIR__ . '/includes/header.php';
     </form>
 
     <div style="text-align:center; margin-top:24px;">
-        <a href="/entrada.php" class="text-muted" style="font-size:13px;">← Voltar à página inicial</a>
+        <a href="/" class="text-muted" style="font-size:13px;">← Voltar à loja</a>
     </div>
 
     <!-- Credenciais de teste (apenas para desenvolvimento) -->
     <details style="margin-top:32px; background:var(--bg); border-radius:var(--radius); padding:16px; font-size:12px; color:var(--muted);">
         <summary style="cursor:pointer; font-weight:700; color:var(--mid);">🔧 Credenciais de teste</summary>
         <div style="margin-top:12px; display:flex; flex-direction:column; gap:6px;">
-            <div><strong>Admin:</strong> admin@shoele_store.test / admin123</div>
-            <div><strong>Gestor:</strong> gestor@shoele_store.test / gestor123</div>
-            <div><strong>Cliente:</strong> cliente@shoele_store.test / cliente123</div>
+            <div><strong>Admin:</strong> admin@shoelestore.test / admin123</div>
+            <div><strong>Gestor:</strong> gestor@shoelestore.test / gestor123</div>
+            <div><strong>Cliente:</strong> cliente@shoelestore.test / cliente123</div>
         </div>
     </details>
 </div>

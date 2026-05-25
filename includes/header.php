@@ -58,6 +58,16 @@ $curDir    = basename(dirname($_SERVER['PHP_SELF']));
             <?php endif; ?>
         </nav>
 
+        <?php if ($curDir !== 'admin' && $curDir !== 'pos'): ?>
+        <div class="header-search-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="header-search-icon" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="search" id="header-search" class="header-search-input"
+                   placeholder="Pesquisar..." autocomplete="off" spellcheck="false">
+        </div>
+        <?php endif; ?>
+
         <div class="header-actions">
             <?php if ($user): ?>
                 <!-- Nome do utilizador + Logout -->

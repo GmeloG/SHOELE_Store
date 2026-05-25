@@ -32,7 +32,7 @@ include __DIR__ . '/includes/header.php';
     <div class="section-header">
         <div>
             <h2>Todos os Produtos</h2>
-            <p><?= count($products) ?> artigos encontrados</p>
+            <p id="product-count"><?= count($products) ?> artigos encontrados</p>
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="/" class="btn btn-sm <?= !$brandFilter ? 'btn-primary' : 'btn-outline' ?>">Todos</a>
@@ -54,10 +54,10 @@ include __DIR__ . '/includes/header.php';
             <a href="/" class="btn btn-primary">Ver todos</a>
         </div>
     <?php else: ?>
-        <div class="products-grid">
+        <div class="products-grid" id="products-grid">
             <?php foreach ($products as $p): ?>
                 <?php $imgSrc = productImageSrc($p['image']); ?>
-                <article class="product-card">
+                <article class="product-card" data-search="<?= strtolower($p['brand'] . ' ' . $p['model']) ?>">
                     <a href="/produto.php?id=<?= $p['id'] ?>" class="card-image">
                         <?php if ($p['image'] && file_exists(__DIR__ . '/uploads/produtos/' . $p['image'])): ?>
                             <img src="<?= e($imgSrc) ?>" alt="<?= e($p['brand'] . ' ' . $p['model']) ?>" loading="lazy">
@@ -80,7 +80,49 @@ include __DIR__ . '/includes/header.php';
                 </article>
             <?php endforeach; ?>
         </div>
+
+        <div id="no-results" class="empty-cart" style="display:none">
+            <div class="icon">🔍</div>
+            <h3>Sem resultados</h3>
+            <p>Não encontrámos nenhum produto para "<span id="no-results-query"></span>".</p>
+            <button class="btn btn-primary" onclick="var s=document.getElementById('header-search');s.value='';s.dispatchEvent(new Event('input'))">Limpar pesquisa</button>
+        </div>
     <?php endif; ?>
 </div>
+
+<script>
+(function () {
+    const input  = document.getElementById('header-search');
+    const cards  = document.querySelectorAll('#products-grid .product-card');
+    const counter= document.getElementById('product-count');
+    const grid   = document.getElementById('products-grid');
+    const noRes  = document.getElementById('no-results');
+    const noResQ = document.getElementById('no-results-query');
+
+    if (!input || !cards.length) return;
+
+    function filter() {
+        const q = input.value.trim().toLowerCase();
+        let visible = 0;
+        cards.forEach(function (card) {
+            const match = !q || card.dataset.search.includes(q);
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        if (counter) counter.textContent = visible + ' artigo' + (visible !== 1 ? 's' : '') + ' encontrado' + (visible !== 1 ? 's' : '');
+        if (noRes && grid) {
+            const empty = visible === 0 && q !== '';
+            noRes.style.display = empty ? '' : 'none';
+            grid.style.display  = empty ? 'none' : '';
+            if (noResQ) noResQ.textContent = input.value.trim();
+        }
+    }
+
+    input.addEventListener('input', filter);
+
+    const urlQ = new URLSearchParams(location.search).get('q');
+    if (urlQ) { input.value = urlQ; filter(); }
+})();
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
