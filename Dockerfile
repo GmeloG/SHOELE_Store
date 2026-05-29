@@ -24,9 +24,10 @@ RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 # Definir pasta de trabalho
 WORKDIR /var/www/html
 
-# Garantir permissões corretas na pasta de uploads
-RUN mkdir -p /var/www/html/uploads/produtos \
-    && chown -R www-data:www-data /var/www/html/uploads \
-    && chmod -R 775 /var/www/html/uploads
+# Entrypoint que corrige permissões ao arrancar (necessário em Linux)
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 80
+
+ENTRYPOINT ["docker-entrypoint.sh"]
