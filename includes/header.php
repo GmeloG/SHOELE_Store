@@ -30,13 +30,13 @@ $curDir    = basename(dirname($_SERVER['PHP_SELF']));
         <nav class="main-nav">
             <?php if (!$user): ?>
                 <!-- Visitante -->
-                <a href="/" class="nav-link <?= $curScript === 'index.php' && $curDir !== 'admin' ? 'active' : '' ?>">Catálogo</a>
+                <a href="/catalogo.php" class="nav-link <?= $curScript === 'catalogo.php' ? 'active' : '' ?>">Catálogo</a>
                 <a href="/login.php" class="nav-link <?= $curScript === 'login.php' ? 'active' : '' ?>">Login</a>
                 <a href="/registo.php" class="nav-link <?= $curScript === 'registo.php' ? 'active' : '' ?>">Registar</a>
 
             <?php elseif ($role === 'cliente'): ?>
                 <!-- Cliente -->
-                <a href="/" class="nav-link <?= $curScript === 'index.php' && $curDir !== 'admin' ? 'active' : '' ?>">Catálogo</a>
+                <a href="/catalogo.php" class="nav-link <?= $curScript === 'catalogo.php' ? 'active' : '' ?>">Catálogo</a>
                 <a href="/cliente/encomendas.php" class="nav-link <?= $curDir === 'cliente' ? 'active' : '' ?>">Minhas Encomendas</a>
 
             <?php elseif ($role === 'gestor'): ?>

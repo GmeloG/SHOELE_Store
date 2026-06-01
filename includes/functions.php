@@ -230,6 +230,37 @@ function cartTotal(): float {
 
 // ─── Produtos ─────────────────────────────────────────────────────────────────
 
+function productsGetBestSellers(int $limit = 6): array {
+    $db   = getDB();
+    $stmt = $db->prepare("
+        SELECT p.*,
+               COALESCE(SUM(pv.stock), 0)  AS total_stock,
+               COALESCE(s.total_sold, 0)   AS total_sold
+        FROM   products p
+        LEFT   JOIN product_variants pv ON pv.product_id = p.id
+        LEFT   JOIN (
+            SELECT pv2.product_id, SUM(qty) AS total_sold
+            FROM (
+                SELECT oi.variant_id, oi.quantity AS qty
+                FROM   order_items oi
+                JOIN   orders o ON o.id = oi.order_id
+                WHERE  o.status != 'cancelada'
+                UNION ALL
+                SELECT si.variant_id, si.quantity AS qty
+                FROM   sale_items si
+            ) all_sales
+            JOIN product_variants pv2 ON pv2.id = all_sales.variant_id
+            GROUP BY pv2.product_id
+        ) s ON s.product_id = p.id
+        WHERE  p.active = 1
+        GROUP  BY p.id
+        ORDER  BY total_sold DESC, p.created_at DESC
+        LIMIT  ?
+    ");
+    $stmt->execute([$limit]);
+    return $stmt->fetchAll();
+}
+
 function productsGetAll(): array {
     $db = getDB();
     return $db->query("
