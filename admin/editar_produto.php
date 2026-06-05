@@ -34,34 +34,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$model)       $errors[] = 'O modelo é obrigatório.';
     if (!is_numeric($basePrice) || $basePrice < 0) $errors[] = 'Preço inválido.';
 
-    // Upload de nova imagem (opcional)
-    $imageName = $product['image'];
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
-        $mime    = (new finfo(FILEINFO_MIME_TYPE))->file($_FILES['image']['tmp_name']);
+    // Atualizar cor e ordem de cada imagem existente
+    foreach ($_POST['image_colors'] ?? [] as $imgId => $color) {
+        $order = max(0, (int)($_POST['image_orders'][$imgId] ?? 0));
+        getDB()->prepare('UPDATE product_images SET color = ?, sort_order = ? WHERE id = ? AND product_id = ?')
+               ->execute([$color ?: null, $order, (int)$imgId, $id]);
+    }
 
-        if (!in_array($mime, $allowed)) {
-            $errors[] = 'Formato de imagem não suportado.';
-        } else {
-            $ext       = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-            $newName   = uniqid('prod_') . '.' . strtolower($ext);
-            $dest      = __DIR__ . '/../uploads/produtos/' . $newName;
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
-                // Apagar imagem anterior
-                if ($imageName && file_exists(__DIR__ . '/../uploads/produtos/' . $imageName)) {
-                    unlink(__DIR__ . '/../uploads/produtos/' . $imageName);
-                }
-                $imageName = $newName;
+    // Remover imagens marcadas
+    foreach (array_map('intval', $_POST['delete_images'] ?? []) as $imgId) {
+        if ($imgId > 0) productDeleteImage($imgId, $id);
+    }
+
+    // Upload de novas imagens
+    if (!empty($_FILES['images']['name'][0])) {
+        $allowed    = ['image/jpeg', 'image/png', 'image/webp'];
+        $sortOffset = (int)getDB()->query("SELECT COALESCE(MAX(sort_order),0)+1 FROM product_images WHERE product_id = $id")->fetchColumn();
+        foreach ($_FILES['images']['tmp_name'] as $i => $tmp) {
+            if ($_FILES['images']['error'][$i] !== UPLOAD_ERR_OK) continue;
+            $mime = (new finfo(FILEINFO_MIME_TYPE))->file($tmp);
+            if (!in_array($mime, $allowed)) {
+                $errors[] = 'Imagem ' . ($i + 1) . ': formato não suportado.';
+                continue;
             }
+            productSaveImage($id, ['tmp_name' => $tmp, 'name' => $_FILES['images']['name'][$i]], $sortOffset + $i);
         }
     }
+    productSyncThumbnail($id);
+    $product['image'] = getDB()->query("SELECT image FROM products WHERE id = $id")->fetchColumn();
 
     if (empty($errors)) {
         $db->beginTransaction();
         try {
             // Atualizar produto
             $db->prepare('UPDATE products SET brand=?, model=?, description=?, base_price=?, image=?, updated_at=NOW() WHERE id=?')
-               ->execute([$brand, $model, $description, (float)$basePrice, $imageName, $id]);
+               ->execute([$brand, $model, $description, (float)$basePrice, $product['image'], $id]);
 
             // Atualizar variantes existentes e inserir novas
             foreach ($newVariants as $v) {
@@ -164,14 +171,65 @@ include __DIR__ . '/../includes/header.php';
                            value="<?= e($_POST['base_price'] ?? $product['base_price']) ?>" style="max-width:180px">
                 </div>
                 <div class="form-group">
-                    <label>Imagem do Produto</label>
-                    <?php if ($product['image'] && file_exists(__DIR__ . '/../uploads/produtos/' . $product['image'])): ?>
-                        <div style="margin-bottom:8px">
-                            <img src="/uploads/produtos/<?= e($product['image']) ?>" style="width:80px; height:80px; object-fit:cover; border-radius:var(--radius);" alt="">
-                        </div>
+                    <label>Imagens do Produto</label>
+                    <?php
+                        $existingImages = productGetImages($id);
+                        $productColors  = productColors($id);
+
+                        // Agrupar imagens por cor (null → "Todas as cores")
+                        $imagesByColor = [];
+                        foreach ($existingImages as $img) {
+                            $key = $img['color'] ?? '';
+                            $imagesByColor[$key][] = $img;
+                        }
+                        // Ordenar grupos: cores com nome primeiro, depois sem cor
+                        uksort($imagesByColor, fn($a, $b) =>
+                            ($a === '') <=> ($b === '') ?: strcasecmp($a, $b)
+                        );
+                    ?>
+                    <?php if (!empty($existingImages)): ?>
+                        <?php foreach ($imagesByColor as $colorKey => $imgs): ?>
+                            <div style="margin-bottom:16px">
+                                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">
+                                    <?= $colorKey !== '' ? e($colorKey) : 'Todas as cores' ?>
+                                </div>
+                                <div style="display:flex;flex-wrap:wrap;gap:10px">
+                                    <?php foreach ($imgs as $img): ?>
+                                        <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+                                            <div style="position:relative">
+                                                <img src="/uploads/produtos/<?= e($img['filename']) ?>"
+                                                     style="width:90px;height:90px;object-fit:cover;border:2px solid var(--border);border-radius:4px">
+                                                <label style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);padding:2px 5px;cursor:pointer;display:flex;align-items:center;gap:3px;border-radius:3px">
+                                                    <input type="checkbox" name="delete_images[]" value="<?= $img['id'] ?>">
+                                                    <span style="color:#fff;font-size:10px">Remover</span>
+                                                </label>
+                                            </div>
+                                            <select name="image_colors[<?= $img['id'] ?>]"
+                                                    style="font-size:12px;padding:2px 4px;width:94px;border:1px solid var(--border);border-radius:3px">
+                                                <option value="">Todas as cores</option>
+                                                <?php foreach ($productColors as $c): ?>
+                                                    <option value="<?= e($c) ?>" <?= ($img['color'] ?? '') === $c ? 'selected' : '' ?>>
+                                                        <?= e($c) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <input type="number" name="image_orders[<?= $img['id'] ?>]"
+                                                   value="<?= (int)$img['sort_order'] ?>"
+                                                   min="0" max="99"
+                                                   placeholder="Ordem"
+                                                   title="Ordem dentro desta cor (0 = primeira)"
+                                                   style="font-size:12px;padding:2px 4px;width:94px;border:1px solid var(--border);border-radius:3px;text-align:center">
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        <small class="text-muted" style="display:block;margin-bottom:8px">
+                            A ordem é independente por cor — 0 = primeira imagem no carrossel dessa cor.
+                        </small>
                     <?php endif; ?>
-                    <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/webp">
-                    <small class="text-muted">Deixar em branco para manter a imagem atual.</small>
+                    <input type="file" name="images[]" class="form-control" accept="image/jpeg,image/png,image/webp" multiple>
+                    <small class="text-muted">Adicionar mais imagens (JPG, PNG ou WebP). Podes selecionar várias de uma vez.</small>
                 </div>
             </div>
 

@@ -258,7 +258,15 @@ function productsGetBestSellers(int $limit = 6): array {
         LIMIT  ?
     ");
     $stmt->execute([$limit]);
-    return $stmt->fetchAll();
+    $rows = $stmt->fetchAll();
+    // Injectar first_image via subquery em memória (evita file_exists)
+    $db2 = getDB();
+    foreach ($rows as &$r) {
+        $s = $db2->prepare('SELECT filename FROM product_images WHERE product_id = ? ORDER BY sort_order, id LIMIT 1');
+        $s->execute([$r['id']]);
+        $r['first_image'] = $s->fetchColumn() ?: $r['image'];
+    }
+    return $rows;
 }
 
 function productsGetAll(): array {
@@ -266,7 +274,8 @@ function productsGetAll(): array {
     return $db->query("
         SELECT p.*,
                COALESCE(SUM(pv.stock), 0) AS total_stock,
-               COUNT(DISTINCT pv.color)   AS color_count
+               COUNT(DISTINCT pv.color)   AS color_count,
+               (SELECT filename FROM product_images WHERE product_id = p.id ORDER BY sort_order, id LIMIT 1) AS first_image
         FROM   products p
         LEFT JOIN product_variants pv ON pv.product_id = p.id
         WHERE  p.active = 1
@@ -420,6 +429,77 @@ function productImageSrc(?string $image): string {
         return '/uploads/produtos/' . $image;
     }
     return '/assets/images/placeholder.svg';
+}
+
+function productGetImages(int $productId): array {
+    $db   = getDB();
+    $stmt = $db->prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order, id');
+    $stmt->execute([$productId]);
+    $rows = $stmt->fetchAll();
+    // Filtrar ficheiros que existem no disco
+    return array_values(array_filter($rows, fn($r) =>
+        file_exists(__DIR__ . '/../uploads/produtos/' . $r['filename'])
+    ));
+}
+
+function productSaveImage(int $productId, array $file, int $sortOrder = 0, ?string $color = null): ?string {
+    $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    $mime    = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    if (!in_array($mime, $allowed)) return null;
+
+    $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $name = uniqid('prod_') . '.' . $ext;
+    $dest = __DIR__ . '/../uploads/produtos/' . $name;
+    if (!move_uploaded_file($file['tmp_name'], $dest)) return null;
+
+    $db = getDB();
+    $db->prepare('INSERT INTO product_images (product_id, filename, color, sort_order) VALUES (?, ?, ?, ?)')
+       ->execute([$productId, $name, $color ?: null, $sortOrder]);
+    return $name;
+}
+
+// Devolve mapa [color => [urls]] para troca de imagem por cor no frontend
+function productGetColorMap(int $productId): array {
+    $db   = getDB();
+    $stmt = $db->prepare('SELECT filename, color FROM product_images WHERE product_id = ? ORDER BY sort_order, id');
+    $stmt->execute([$productId]);
+    $map  = ['__default__' => []];
+    foreach ($stmt->fetchAll() as $row) {
+        if (!file_exists(__DIR__ . '/../uploads/produtos/' . $row['filename'])) continue;
+        $key = $row['color'] ?: '__default__';
+        $map[$key][] = '/uploads/produtos/' . $row['filename'];
+    }
+    return array_filter($map);
+}
+
+function productDeleteImage(int $imageId, int $productId): void {
+    $db   = getDB();
+    $stmt = $db->prepare('SELECT filename FROM product_images WHERE id = ? AND product_id = ?');
+    $stmt->execute([$imageId, $productId]);
+    $row  = $stmt->fetch();
+    if (!$row) return;
+
+    $path = __DIR__ . '/../uploads/produtos/' . $row['filename'];
+    if (file_exists($path)) unlink($path);
+    $db->prepare('DELETE FROM product_images WHERE id = ?')->execute([$imageId]);
+}
+
+function productSyncThumbnail(int $productId): void {
+    $db = getDB();
+
+    // Preferir a primeira imagem de "todas as cores" (color IS NULL)
+    $stmt = $db->prepare('SELECT filename FROM product_images WHERE product_id = ? AND color IS NULL ORDER BY sort_order, id LIMIT 1');
+    $stmt->execute([$productId]);
+    $first = $stmt->fetchColumn();
+
+    // Fallback: primeira imagem de qualquer cor
+    if (!$first) {
+        $stmt = $db->prepare('SELECT filename FROM product_images WHERE product_id = ? ORDER BY sort_order, id LIMIT 1');
+        $stmt->execute([$productId]);
+        $first = $stmt->fetchColumn();
+    }
+
+    $db->prepare('UPDATE products SET image = ? WHERE id = ?')->execute([$first ?: null, $productId]);
 }
 
 function orderStatusBadge(string $status): string {

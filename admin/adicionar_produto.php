@@ -22,21 +22,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$model)       $errors[] = 'O modelo é obrigatório.';
     if (!is_numeric($basePrice) || $basePrice < 0) $errors[] = 'Preço inválido.';
 
-    // Upload de imagem
-    $imageName = null;
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+    // Validar imagens antes de guardar
+    $uploadedFiles = [];
+    if (!empty($_FILES['images']['name'][0])) {
         $allowed = ['image/jpeg', 'image/png', 'image/webp'];
-        $mime    = (new finfo(FILEINFO_MIME_TYPE))->file($_FILES['image']['tmp_name']);
-
-        if (!in_array($mime, $allowed)) {
-            $errors[] = 'Formato de imagem não suportado. Use JPG, PNG ou WebP.';
-        } else {
-            $ext       = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-            $imageName = uniqid('prod_') . '.' . strtolower($ext);
-            $dest      = __DIR__ . '/../uploads/produtos/' . $imageName;
-            if (!move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
-                $errors[] = 'Erro ao guardar a imagem.';
-                $imageName = null;
+        foreach ($_FILES['images']['tmp_name'] as $i => $tmp) {
+            if ($_FILES['images']['error'][$i] !== UPLOAD_ERR_OK) continue;
+            $mime = (new finfo(FILEINFO_MIME_TYPE))->file($tmp);
+            if (!in_array($mime, $allowed)) {
+                $errors[] = 'Imagem ' . ($i + 1) . ': formato não suportado (use JPG, PNG ou WebP).';
+            } else {
+                $uploadedFiles[] = [
+                    'tmp_name' => $tmp,
+                    'name'     => $_FILES['images']['name'][$i],
+                ];
             }
         }
     }
@@ -45,9 +44,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db = getDB();
         $db->beginTransaction();
         try {
-            $db->prepare('INSERT INTO products (brand, model, description, base_price, image) VALUES (?, ?, ?, ?, ?)')
-               ->execute([$brand, $model, $description, (float)$basePrice, $imageName]);
+            $db->prepare('INSERT INTO products (brand, model, description, base_price) VALUES (?, ?, ?, ?)')
+               ->execute([$brand, $model, $description, (float)$basePrice]);
             $productId = (int)$db->lastInsertId();
+
+            // Guardar imagens
+            foreach ($uploadedFiles as $order => $file) {
+                productSaveImage($productId, $file, $order);
+            }
+            productSyncThumbnail($productId);
 
             // Inserir variantes
             $stmtV = $db->prepare('INSERT INTO product_variants (product_id, color, size, stock) VALUES (?, ?, ?, ?)');
@@ -114,9 +119,9 @@ include __DIR__ . '/../includes/header.php';
                            value="<?= e($_POST['base_price'] ?? '0') ?>" placeholder="99.99" required style="max-width:180px">
                 </div>
                 <div class="form-group">
-                    <label>Imagem do Produto</label>
-                    <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/webp">
-                    <small class="text-muted">JPG, PNG ou WebP. Recomendado: 800×800px.</small>
+                    <label>Imagens do Produto</label>
+                    <input type="file" name="images[]" class="form-control" accept="image/jpeg,image/png,image/webp" multiple>
+                    <small class="text-muted">JPG, PNG ou WebP. Podes selecionar várias imagens de uma vez. Recomendado: 800×800px.</small>
                 </div>
             </div>
 

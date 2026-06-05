@@ -138,6 +138,20 @@ CREATE TABLE sale_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
+-- Tabela: product_images (múltiplas imagens por produto com cor opcional)
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS product_images;
+CREATE TABLE product_images (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT           NOT NULL,
+    filename   VARCHAR(255)  NOT NULL,
+    color      VARCHAR(50)   NULL DEFAULT NULL,
+    sort_order INT           NOT NULL DEFAULT 0,
+    created_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pi_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
 -- Tabela: stock_movements (auditoria de movimentos de stock)
 -- ------------------------------------------------------------
 DROP TABLE IF EXISTS stock_movements;

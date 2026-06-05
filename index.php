@@ -57,8 +57,9 @@ include __DIR__ . '/includes/header.php';
 <section class="hero-carousel" aria-label="Mais Vendidos">
     <div class="carousel-track" id="carousel-track">
         <?php foreach ($bestSellers as $i => $p):
-            $imgSrc  = productImageSrc($p['image']);
-            $hasImg  = $p['image'] && file_exists(__DIR__ . '/uploads/produtos/' . $p['image']);
+            $fi     = $p['first_image'] ?? $p['image'];
+            $imgSrc = $fi ? '/uploads/produtos/' . $fi : null;
+            $hasImg = (bool)$imgSrc;
         ?>
         <div class="carousel-slide" role="group" aria-label="Slide <?= $i+1 ?> de <?= count($bestSellers) ?>">
             <div class="slide-bg">

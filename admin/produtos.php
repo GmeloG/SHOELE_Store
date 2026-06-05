@@ -22,7 +22,8 @@ $db = getDB();
 $products = $db->query("
     SELECT p.*,
            COALESCE(SUM(pv.stock), 0) AS total_stock,
-           COUNT(DISTINCT CONCAT(pv.color,'|',pv.size)) AS variant_count
+           COUNT(DISTINCT CONCAT(pv.color,'|',pv.size)) AS variant_count,
+           (SELECT filename FROM product_images WHERE product_id = p.id ORDER BY sort_order, id LIMIT 1) AS first_image
     FROM   products p
     LEFT JOIN product_variants pv ON pv.product_id = p.id
     WHERE  p.active = 1
@@ -69,8 +70,9 @@ include __DIR__ . '/../includes/header.php';
                             <td class="text-muted"><?= $p['id'] ?></td>
                             <td>
                                 <div style="width:48px; height:48px; border-radius:6px; overflow:hidden; background:var(--bg);">
-                                    <?php if ($p['image'] && file_exists(__DIR__ . '/../uploads/produtos/' . $p['image'])): ?>
-                                        <img src="/uploads/produtos/<?= e($p['image']) ?>" style="width:100%;height:100%;object-fit:cover" alt="">
+                                    <?php $thumb = $p['first_image'] ?? $p['image']; ?>
+                                    <?php if ($thumb): ?>
+                                        <img src="/uploads/produtos/<?= e($thumb) ?>" style="width:100%;height:100%;object-fit:cover" alt="">
                                     <?php else: ?>
                                         <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:24px">👟</div>
                                     <?php endif; ?>

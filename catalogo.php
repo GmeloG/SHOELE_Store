@@ -42,10 +42,10 @@ include __DIR__ . '/includes/header.php';
     <?php else: ?>
         <div class="products-grid" id="products-grid">
             <?php foreach ($products as $p): ?>
-                <?php $imgSrc = productImageSrc($p['image']); ?>
+                <?php $fi = $p['first_image'] ?? $p['image']; $imgSrc = $fi ? '/uploads/produtos/' . $fi : null; ?>
                 <article class="product-card" data-search="<?= strtolower($p['brand'] . ' ' . $p['model']) ?>">
                     <a href="/produto.php?id=<?= $p['id'] ?>" class="card-image">
-                        <?php if ($p['image'] && file_exists(__DIR__ . '/uploads/produtos/' . $p['image'])): ?>
+                        <?php if ($imgSrc): ?>
                             <img src="<?= e($imgSrc) ?>" alt="<?= e($p['brand'] . ' ' . $p['model']) ?>" loading="lazy">
                         <?php else: ?>
                             <div class="card-placeholder">👟</div>

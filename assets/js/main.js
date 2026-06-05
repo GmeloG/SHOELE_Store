@@ -101,53 +101,23 @@ function updateCartBadge(count) {
 // ─── Página de Produto ───────────────────────────────────────────
 
 (function initProductPage() {
-    const colorOptions = document.querySelectorAll('.color-option');
-    const sizeOptions  = document.querySelectorAll('.size-option');
-    const addToCartBtn = document.getElementById('add-to-cart-btn');
-    const stockInfo    = document.getElementById('stock-info');
+    const colorOptions  = document.querySelectorAll('.color-option');
+    const sizeSelector  = document.querySelector('.size-selector');
+    const addToCartBtn  = document.getElementById('add-to-cart-btn');
+    const stockInfo     = document.getElementById('stock-info');
 
     if (!colorOptions.length) return;
 
-    // Inicializar a partir do estado pré-selecionado pelo servidor
     let selectedColor   = document.querySelector('.color-option.selected')?.dataset.color ?? null;
     let selectedVariant = null;
 
-    colorOptions.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            colorOptions.forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            selectedColor   = btn.dataset.color;
-            selectedVariant = null;
+    // Event delegation no contentor — funciona com botões criados dinamicamente
+    if (sizeSelector) {
+        sizeSelector.addEventListener('click', e => {
+            const btn = e.target.closest('.size-option');
+            if (!btn || btn.classList.contains('out-of-stock')) return;
 
-            // Buscar tamanhos disponíveis para esta cor
-            const productId = btn.dataset.productId;
-            const res = await fetch(`/api/variant_stock.php?product_id=${productId}&color=${encodeURIComponent(selectedColor)}`);
-            const sizes = await res.json();
-
-            sizeOptions.forEach(sizeBtn => {
-                const variantData = sizes.find(s => s.size === sizeBtn.dataset.size);
-                if (variantData) {
-                    sizeBtn.dataset.variantId = variantData.variant_id;
-                    sizeBtn.dataset.stock     = variantData.stock;
-                    sizeBtn.classList.toggle('out-of-stock', variantData.stock === 0);
-                } else {
-                    sizeBtn.dataset.variantId = '';
-                    sizeBtn.dataset.stock     = '0';
-                    sizeBtn.classList.add('out-of-stock');
-                }
-                sizeBtn.classList.remove('selected');
-            });
-
-            if (stockInfo)    stockInfo.textContent = '';
-            if (addToCartBtn) addToCartBtn.disabled = true;
-        });
-    });
-
-    sizeOptions.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (btn.classList.contains('out-of-stock')) return;
-
-            sizeOptions.forEach(b => b.classList.remove('selected'));
+            sizeSelector.querySelectorAll('.size-option').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
 
             selectedVariant = parseInt(btn.dataset.variantId);
@@ -168,6 +138,37 @@ function updateCartBadge(count) {
 
             if (addToCartBtn) addToCartBtn.disabled = (stock === 0);
         });
+    }
+
+    colorOptions.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            colorOptions.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedColor   = btn.dataset.color;
+            selectedVariant = null;
+
+            const productId = btn.dataset.productId;
+            const res   = await fetch(`/api/variant_stock.php?product_id=${productId}&color=${encodeURIComponent(selectedColor)}`);
+            const sizes = await res.json();
+
+            // Reconstruir os botões de tamanho para esta cor
+            if (sizeSelector) {
+                sizeSelector.innerHTML = '';
+                sizes.forEach(v => {
+                    const sizeBtn = document.createElement('button');
+                    sizeBtn.type      = 'button';
+                    sizeBtn.className = 'size-option' + (+v.stock === 0 ? ' out-of-stock' : '');
+                    sizeBtn.dataset.size      = v.size;
+                    sizeBtn.dataset.variantId = v.variant_id;
+                    sizeBtn.dataset.stock     = v.stock;
+                    sizeBtn.textContent = v.size;
+                    sizeSelector.appendChild(sizeBtn);
+                });
+            }
+
+            if (stockInfo)    stockInfo.textContent = '';
+            if (addToCartBtn) addToCartBtn.disabled = true;
+        });
     });
 
     if (addToCartBtn) {
@@ -181,7 +182,7 @@ function updateCartBadge(count) {
                 return;
             }
 
-            addToCartBtn.disabled = true;
+            addToCartBtn.disabled    = true;
             addToCartBtn.textContent = 'A adicionar...';
             const result = await cartAdd(selectedVariant, 1);
             addToCartBtn.textContent = 'Adicionar ao Carrinho';

@@ -18,6 +18,13 @@ if (!$product) {
 
 define('PAGE_TITLE', $product['brand'] . ' ' . $product['model']);
 
+// Imagens do produto
+$productImages  = productGetImages($id);
+if (empty($productImages) && $product['image']) {
+    $productImages = [['filename' => $product['image'], 'id' => 0, 'color' => null]];
+}
+$colorImageMap = productGetColorMap($id);
+
 // Cores disponíveis (com stock > 0)
 $colors = productColors($id);
 
@@ -39,13 +46,27 @@ include __DIR__ . '/includes/header.php';
     </nav>
 
     <div class="product-detail-grid">
-        <!-- Imagem -->
+        <!-- Galeria de imagens -->
         <div class="product-gallery">
-            <?php if ($product['image'] && file_exists(__DIR__ . '/uploads/produtos/' . $product['image'])): ?>
-                <img src="/uploads/produtos/<?= e($product['image']) ?>"
-                     alt="<?= e($product['brand'] . ' ' . $product['model']) ?>">
+            <?php if (!empty($productImages)): ?>
+                <div class="gallery-main-wrap">
+                    <img id="gallery-main"
+                         src="/uploads/produtos/<?= e($productImages[0]['filename']) ?>"
+                         alt="<?= e($product['brand'] . ' ' . $product['model']) ?>">
+                    <button class="gallery-nav-btn gallery-nav-prev" id="gallery-prev" aria-label="Imagem anterior">&#10094;</button>
+                    <button class="gallery-nav-btn gallery-nav-next" id="gallery-next" aria-label="Imagem seguinte">&#10095;</button>
+                </div>
+                <?php if (count($productImages) > 1): ?>
+                    <div class="gallery-thumbs" id="gallery-thumbs">
+                        <?php foreach ($productImages as $i => $img): ?>
+                            <img src="/uploads/produtos/<?= e($img['filename']) ?>"
+                                 class="gallery-thumb <?= $i === 0 ? 'active' : '' ?>"
+                                 alt="">
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             <?php else: ?>
-                <div class="product-gallery-placeholder">👟</div>
+                <div class="product-gallery-placeholder">&#128095;</div>
             <?php endif; ?>
         </div>
 
@@ -100,5 +121,105 @@ include __DIR__ . '/includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    var colorMap   = <?= json_encode($colorImageMap, JSON_UNESCAPED_UNICODE) ?>;
+    var defColor   = <?= json_encode($defaultColor) ?>;
+    var mainImg    = document.getElementById('gallery-main');
+    var thumbsWrap = document.getElementById('gallery-thumbs');
+    var prevBtn    = document.getElementById('gallery-prev');
+    var nextBtn    = document.getElementById('gallery-next');
+    var allUrls    = [];
+    var current    = 0;
+
+    function updateNav() {
+        var multi = allUrls.length > 1;
+        if (prevBtn) {
+            prevBtn.style.display = multi ? '' : 'none';
+            prevBtn.disabled = current === 0;
+        }
+        if (nextBtn) {
+            nextBtn.style.display = multi ? '' : 'none';
+            nextBtn.disabled = current >= allUrls.length - 1;
+        }
+    }
+
+    function setActive(idx) {
+        if (!thumbsWrap) return;
+        thumbsWrap.querySelectorAll('.gallery-thumb').forEach(function (t, i) {
+            t.classList.toggle('active', i === idx);
+            if (i === idx) t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        });
+    }
+
+    function goTo(idx) {
+        if (!allUrls.length || !mainImg) return;
+        current = Math.max(0, Math.min(idx, allUrls.length - 1));
+        mainImg.src = allUrls[current];
+        setActive(current);
+        updateNav();
+    }
+
+    function setGallery(urls) {
+        if (!urls || !urls.length || !mainImg) return;
+        allUrls = urls;
+        current = 0;
+        mainImg.src = urls[0];
+        if (!thumbsWrap) { updateNav(); return; }
+        thumbsWrap.style.display = urls.length > 1 ? '' : 'none';
+        thumbsWrap.innerHTML = '';
+        if (urls.length > 1) {
+            urls.forEach(function (url, i) {
+                var t = document.createElement('img');
+                t.src = url;
+                t.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
+                t.onclick = function () { goTo(i); };
+                thumbsWrap.appendChild(t);
+            });
+        }
+        updateNav();
+    }
+
+    // Inicializar a partir das miniaturas renderizadas pelo PHP
+    if (thumbsWrap) {
+        var initThumbs = thumbsWrap.querySelectorAll('.gallery-thumb');
+        allUrls = Array.from(initThumbs).map(function (t) { return t.src; });
+        initThumbs.forEach(function (t, i) { t.onclick = function () { goTo(i); }; });
+    } else if (mainImg) {
+        allUrls = [mainImg.src];
+    }
+
+    // Se a cor padrão tiver imagens específicas no colorMap, usar essas
+    if (defColor && colorMap[defColor] && colorMap[defColor].length) {
+        setGallery(colorMap[defColor]);
+    } else {
+        updateNav();
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', function () { goTo(current - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { goTo(current + 1); });
+
+    // Suporte a swipe em dispositivos móveis
+    var touchStartX = 0;
+    if (mainImg) {
+        mainImg.addEventListener('touchstart', function (e) {
+            touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+        mainImg.addEventListener('touchend', function (e) {
+            var dx = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(dx) > 50) goTo(current + (dx < 0 ? 1 : -1));
+        }, { passive: true });
+    }
+
+    document.querySelectorAll('.color-option').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var color = this.dataset.color;
+            var urls  = colorMap[color] || colorMap['__default__'] || [];
+            if (urls.length) setGallery(urls);
+        });
+    });
+})();
+</script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
