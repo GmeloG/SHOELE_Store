@@ -1,24 +1,94 @@
 <?php
 /**
- * Página inicial — Catálogo de produtos
+ * Página inicial
  */
-define('PAGE_TITLE', 'Catálogo');
+define('PAGE_TITLE', 'Início');
 require_once __DIR__ . '/includes/functions.php';
 
-$bestSellers = productsGetBestSellers(6);
+$searchQuery = trim($_GET['q'] ?? '');
+$searchResults = [];
 
-// Marcas com contagem de produtos
+if ($searchQuery !== '') {
+    $db   = getDB();
+    $term = '%' . $searchQuery . '%';
+    $stmt = $db->prepare("
+        SELECT p.id, p.brand, p.model, p.base_price,
+               COALESCE(SUM(pv.stock), 0) AS total_stock,
+               COUNT(DISTINCT pv.color)   AS color_count,
+               (SELECT filename FROM product_images WHERE product_id = p.id ORDER BY sort_order, id LIMIT 1) AS first_image
+        FROM   products p
+        LEFT JOIN product_variants pv ON pv.product_id = p.id
+        WHERE  p.active = 1
+          AND  (p.brand LIKE ? OR p.model LIKE ? OR CONCAT(p.brand,' ',p.model) LIKE ?)
+        GROUP  BY p.id
+        ORDER  BY
+          CASE WHEN CONCAT(p.brand,' ',p.model) LIKE ? THEN 0 ELSE 1 END,
+          p.brand, p.model
+    ");
+    $stmt->execute([$term, $term, $term, $term]);
+    $searchResults = $stmt->fetchAll();
+}
+
+$bestSellers = $searchQuery === '' ? productsGetBestSellers(6) : [];
+
 $db     = getDB();
-$brands = $db->query("
-    SELECT brand, COUNT(*) AS total
-    FROM   products
-    WHERE  active = 1
-    GROUP  BY brand
-    ORDER  BY brand
-")->fetchAll();
+$brands = $searchQuery === '' ? $db->query("
+    SELECT brand, COUNT(*) AS total FROM products WHERE active = 1 GROUP BY brand ORDER BY brand
+")->fetchAll() : [];
 
 include __DIR__ . '/includes/header.php';
 ?>
+
+<?php if ($searchQuery !== ''): ?>
+<!-- Resultados da pesquisa inline -->
+<div class="container" style="padding:40px 0 80px">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
+        <div>
+            <h1 style="font-size:1.6rem; font-weight:900; margin-bottom:4px;">
+                Resultados para "<?= e($searchQuery) ?>"
+            </h1>
+            <p class="text-muted"><?= count($searchResults) ?> produto<?= count($searchResults) != 1 ? 's' : '' ?> encontrado<?= count($searchResults) != 1 ? 's' : '' ?></p>
+        </div>
+        <a href="/" class="btn btn-outline btn-sm">← Voltar ao início</a>
+    </div>
+
+    <?php if (empty($searchResults)): ?>
+        <div class="empty-cart">
+            <div class="icon">🔍</div>
+            <h3>Nenhum produto encontrado</h3>
+            <p>Tenta pesquisar por marca ou modelo.</p>
+            <a href="/" class="btn btn-red mt-3">Ver todos os produtos</a>
+        </div>
+    <?php else: ?>
+        <div class="products-grid">
+            <?php foreach ($searchResults as $p):
+                $imgSrc = $p['first_image']
+                    ? '/uploads/produtos/' . $p['first_image']
+                    : (($p['image'] ?? null) ? '/uploads/produtos/' . $p['image'] : null);
+            ?>
+            <a href="/produto.php?id=<?= $p['id'] ?>" class="product-card">
+                <div class="card-image">
+                    <?php if ($imgSrc): ?>
+                        <img src="<?= e($imgSrc) ?>" alt="<?= e($p['brand'] . ' ' . $p['model']) ?>" loading="lazy">
+                    <?php else: ?>
+                        <div class="card-placeholder">👟</div>
+                    <?php endif; ?>
+                </div>
+                <div class="card-body">
+                    <div class="card-brand"><?= e($p['brand']) ?></div>
+                    <div class="card-model"><?= e($p['model']) ?></div>
+                    <div class="card-price"><?= formatPrice((float)$p['base_price']) ?></div>
+                </div>
+                <div class="card-footer">
+                    <div class="btn btn-outline btn-sm btn-full">Ver Produto</div>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php else: ?>
 
 <?php if (!empty($bestSellers)): ?>
 <style>
@@ -41,8 +111,7 @@ include __DIR__ . '/includes/header.php';
 @keyframes floatImg{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:10;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;width:52px;height:52px;border-radius:50%;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;backdrop-filter:blur(4px)}
 .carousel-btn:hover{background:rgba(255,255,255,.25)}
-.carousel-prev{left:20px}
-.carousel-next{right:20px}
+.carousel-prev{left:20px}.carousel-next{right:20px}
 .carousel-dots{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
 .carousel-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.4);border:none;cursor:pointer;padding:0;transition:background .2s,transform .2s}
 .carousel-dot.active{background:#fff;transform:scale(1.3)}
@@ -125,7 +194,6 @@ include __DIR__ . '/includes/header.php';
         d.addEventListener('click', function () { go(+this.dataset.index); resetAuto(); });
     });
 
-    // Swipe em mobile
     var startX = 0;
     track.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, {passive:true});
     track.addEventListener('touchend',   function (e) {
@@ -174,5 +242,7 @@ include __DIR__ . '/includes/header.php';
         <?php endif; ?>
     </div>
 </div>
+
+<?php endif; ?>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

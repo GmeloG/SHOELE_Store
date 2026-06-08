@@ -1,7 +1,6 @@
 <?php
 /**
  * Admin — Gestão de encomendas online
- * Permite alterar o estado e cancela com devolução de stock
  */
 define('PAGE_TITLE', 'Encomendas');
 require_once __DIR__ . '/../includes/functions.php';
@@ -14,17 +13,16 @@ $db = getDB();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['status'])) {
     $orderId   = (int)$_POST['order_id'];
     $newStatus = $_POST['status'];
-    $allowed   = ['encomendada', 'em_armazem', 'entregue', 'cancelada'];
+    $allowed   = ['encomendada', 'em_armazem', 'entregue', 'concluida', 'cancelada'];
 
     if (in_array($newStatus, $allowed, true)) {
         $db->beginTransaction();
         try {
-            // Obter estado atual
             $stmt = $db->prepare('SELECT status FROM orders WHERE id = ?');
             $stmt->execute([$orderId]);
             $currentStatus = $stmt->fetchColumn();
 
-            // Se está a cancelar (e não estava já cancelada) → devolver stock
+            // Cancelar → devolver stock
             if ($newStatus === 'cancelada' && $currentStatus !== 'cancelada') {
                 $items = $db->prepare("SELECT variant_id, quantity FROM order_items WHERE order_id = ?");
                 $items->execute([$orderId]);
@@ -36,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                 }
             }
 
-            // Se estava cancelada e volta a ativo → debitar stock novamente
+            // Reativar desde cancelada → debitar stock
             if ($currentStatus === 'cancelada' && $newStatus !== 'cancelada') {
                 $items = $db->prepare("SELECT variant_id, quantity FROM order_items WHERE order_id = ?");
                 $items->execute([$orderId]);
@@ -69,28 +67,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
 
 // Filtro de estado
 $filterStatus = $_GET['status'] ?? '';
-$allowed      = ['encomendada', 'em_armazem', 'entregue', 'cancelada'];
-$whereClause  = in_array($filterStatus, $allowed) ? "WHERE o.status = '$filterStatus'" : '';
+$allStatuses  = ['encomendada', 'em_armazem', 'entregue', 'concluida', 'cancelada'];
+$whereClause  = in_array($filterStatus, $allStatuses, true)
+    ? "WHERE o.status = " . $db->quote($filterStatus)
+    : '';
 
-$orders = $db->query("
-    SELECT o.id, o.status, o.total, o.created_at, o.updated_at,
-           c.name, c.email, c.phone
-    FROM   orders o
-    JOIN   customers c ON c.id = o.customer_id
-    $whereClause
-    ORDER  BY o.created_at DESC
-")->fetchAll();
+try {
+    $orders = $db->query("
+        SELECT o.id, o.status, o.total, o.created_at, o.updated_at,
+               o.cliente_confirmou, o.feedback_cliente,
+               c.name, c.email, c.phone
+        FROM   orders o
+        JOIN   customers c ON c.id = o.customer_id
+        $whereClause
+        ORDER  BY o.created_at DESC
+    ")->fetchAll();
+} catch (PDOException $e) {
+    // Fallback: query without new columns (migration not yet applied)
+    $orders = $db->query("
+        SELECT o.id, o.status, o.total, o.created_at, o.updated_at,
+               0 AS cliente_confirmou, NULL AS feedback_cliente,
+               c.name, c.email, c.phone
+        FROM   orders o
+        JOIN   customers c ON c.id = o.customer_id
+        $whereClause
+        ORDER  BY o.created_at DESC
+    ")->fetchAll();
+}
 
-// Detalhe de uma encomenda específica
+// Detalhe de uma encomenda
 $detailOrder = null;
 $detailItems = [];
 if (isset($_GET['id'])) {
     $detailId = (int)$_GET['id'];
-    $stmt = $db->prepare("SELECT o.*, c.name, c.email, c.phone, c.address FROM orders o JOIN customers c ON c.id = o.customer_id WHERE o.id = ?");
+    $stmt = $db->prepare("
+        SELECT o.*, c.name, c.email, c.phone, c.address
+        FROM   orders o JOIN customers c ON c.id = o.customer_id
+        WHERE  o.id = ?
+    ");
     $stmt->execute([$detailId]);
     $detailOrder = $stmt->fetch();
     if ($detailOrder) {
-        $stmt = $db->prepare("SELECT oi.*, pv.color, pv.size, p.brand, p.model FROM order_items oi JOIN product_variants pv ON pv.id = oi.variant_id JOIN products p ON p.id = pv.product_id WHERE oi.order_id = ?");
+        $stmt = $db->prepare("
+            SELECT oi.*, pv.color, pv.size, p.brand, p.model
+            FROM   order_items oi
+            JOIN   product_variants pv ON pv.id = oi.variant_id
+            JOIN   products p ON p.id = pv.product_id
+            WHERE  oi.order_id = ?
+        ");
         $stmt->execute([$detailId]);
         $detailItems = $stmt->fetchAll();
     }
@@ -113,7 +137,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="alert alert-danger">✕ <?= e($errorMsg) ?></div>
         <?php endif; ?>
 
-        <!-- Detalhe da encomenda -->
+        <!-- Detalhe -->
         <?php if ($detailOrder): ?>
             <div class="table-card" style="margin-bottom:32px; border-left:4px solid var(--red);">
                 <div class="table-card-header">
@@ -121,8 +145,10 @@ include __DIR__ . '/../includes/header.php';
                     <form method="POST" style="display:flex; gap:8px; align-items:center;">
                         <input type="hidden" name="order_id" value="<?= $detailOrder['id'] ?>">
                         <select name="status" class="form-control" style="width:auto">
-                            <?php foreach (['encomendada','em_armazem','entregue','cancelada'] as $s): ?>
-                                <option value="<?= $s ?>" <?= $s === $detailOrder['status'] ? 'selected' : '' ?>><?= orderStatusLabel($s) ?></option>
+                            <?php foreach ($allStatuses as $s): ?>
+                                <option value="<?= $s ?>" <?= $s === $detailOrder['status'] ? 'selected' : '' ?>>
+                                    <?= orderStatusLabel($s) ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                         <button type="submit" class="btn btn-primary btn-sm">Atualizar</button>
@@ -160,18 +186,46 @@ include __DIR__ . '/../includes/header.php';
                         </tr>
                     </tbody>
                 </table>
+
+                <!-- Feedback do cliente -->
+                <?php if ($detailOrder['status'] === 'concluida' || ($detailOrder['cliente_confirmou'] ?? 0)): ?>
+                <div style="padding:16px 24px; border-top:1px solid var(--border); background:#f0fdf4;">
+                    <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">
+                        Confirmação do cliente
+                    </div>
+                    <?php if ($detailOrder['data_confirmacao'] ?? null): ?>
+                        <p style="font-size:13px; color:var(--mid); margin-bottom:6px;">
+                            Confirmado em <?= date('d/m/Y H:i', strtotime($detailOrder['data_confirmacao'])) ?>
+                        </p>
+                    <?php endif; ?>
+                    <?php if ($detailOrder['avaliacao'] ?? null): ?>
+                        <div style="margin-bottom:6px;">
+                            <?php for ($s = 1; $s <= 5; $s++): ?>
+                                <span style="color:<?= $s <= ($detailOrder['avaliacao'] ?? 0) ? '#f59e0b' : '#d1d5db' ?>; font-size:18px;">★</span>
+                            <?php endfor; ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($detailOrder['feedback_cliente'] ?? null): ?>
+                        <p style="font-size:14px; color:var(--mid); font-style:italic;">
+                            "<?= e($detailOrder['feedback_cliente']) ?>"
+                        </p>
+                    <?php else: ?>
+                        <p class="text-muted" style="font-size:13px;">Sem comentário.</p>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
 
         <!-- Filtros -->
         <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
             <a href="/admin/encomendas.php" class="btn btn-sm <?= !$filterStatus ? 'btn-primary' : 'btn-outline' ?>">Todas</a>
-            <?php foreach (['encomendada','em_armazem','entregue','cancelada'] as $s): ?>
+            <?php foreach ($allStatuses as $s): ?>
                 <a href="?status=<?= $s ?>" class="btn btn-sm <?= $filterStatus === $s ? 'btn-primary' : 'btn-outline' ?>"><?= orderStatusLabel($s) ?></a>
             <?php endforeach; ?>
         </div>
 
-        <!-- Tabela de encomendas -->
+        <!-- Tabela -->
         <div class="table-card">
             <table class="data-table">
                 <thead>
@@ -180,6 +234,7 @@ include __DIR__ . '/../includes/header.php';
                         <th>Cliente</th>
                         <th>Total</th>
                         <th>Estado</th>
+                        <th>Feedback</th>
                         <th>Data</th>
                         <th>Ações</th>
                     </tr>
@@ -194,6 +249,13 @@ include __DIR__ . '/../includes/header.php';
                             </td>
                             <td><?= formatPrice((float)$o['total']) ?></td>
                             <td><span class="badge <?= orderStatusBadge($o['status']) ?>"><?= orderStatusLabel($o['status']) ?></span></td>
+                            <td>
+                                <?php if ($o['feedback_cliente'] ?? null): ?>
+                                    <span title="<?= e($o['feedback_cliente']) ?>" style="cursor:help; font-size:16px;">💬</span>
+                                <?php else: ?>
+                                    <span class="text-muted" style="font-size:12px;">—</span>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-muted" style="font-size:12px"><?= date('d/m/Y H:i', strtotime($o['created_at'])) ?></td>
                             <td>
                                 <a href="?id=<?= $o['id'] ?>" class="btn btn-sm btn-outline">Detalhes</a>

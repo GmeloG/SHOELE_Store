@@ -2,17 +2,87 @@
    Shoele Store — JavaScript principal
    ================================================================ */
 
-// ─── Header Search ───────────────────────────────────────────────
-// Em páginas que não o catálogo, redireciona para /?q=termo no Enter
-
+// ─── Header Search — Live Dropdown + Enter redirect ──────────────
 (function () {
-    const inp = document.getElementById('header-search');
-    if (!inp || document.getElementById('products-grid')) return;
+    const inp      = document.getElementById('header-search');
+    const dropdown = document.getElementById('search-dropdown');
+    if (!inp || !dropdown) return;
+
+    let currentQuery = '';
+    let debounceTimer;
+
+    // Ao escrever → mostrar dropdown com resultados
+    inp.addEventListener('input', function () {
+        const q = this.value.trim();
+        clearTimeout(debounceTimer);
+
+        if (q.length < 2) {
+            hideDropdown();
+            return;
+        }
+
+        debounceTimer = setTimeout(() => fetchSuggestions(q), 200);
+    });
+
+    // Enter → navega para /?q=... (inline na index)
     inp.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && this.value.trim()) {
+            hideDropdown();
             window.location.href = '/?q=' + encodeURIComponent(this.value.trim());
         }
+        if (e.key === 'Escape') {
+            hideDropdown();
+            inp.blur();
+        }
     });
+
+    // Fechar ao clicar fora
+    document.addEventListener('click', function (e) {
+        if (!document.getElementById('search-wrap')?.contains(e.target)) {
+            hideDropdown();
+        }
+    });
+
+    async function fetchSuggestions(q) {
+        if (q === currentQuery) return;
+        currentQuery = q;
+
+        try {
+            const res  = await fetch('/api/search.php?q=' + encodeURIComponent(q));
+            const data = await res.json();
+
+            if (inp.value.trim() !== q) return; // stale
+
+            if (!data.length) { hideDropdown(); return; }
+
+            dropdown.innerHTML = data.map(p => `
+                <a class="search-result-item" href="${p.url}">
+                    <div class="search-result-img">
+                        ${p.thumb
+                            ? `<img src="${p.thumb}" alt="" loading="lazy">`
+                            : '<span style="font-size:22px">👟</span>'}
+                    </div>
+                    <div class="search-result-info">
+                        <div class="search-result-name">${p.name}</div>
+                        <div class="search-result-price">${p.price}</div>
+                    </div>
+                </a>
+            `).join('') + `
+                <a class="search-result-all" href="/?q=${encodeURIComponent(q)}">
+                    Ver todos os resultados para "${q}" →
+                </a>`;
+
+            dropdown.hidden = false;
+        } catch (_) {
+            // network error — fail silently
+        }
+    }
+
+    function hideDropdown() {
+        dropdown.hidden = true;
+        dropdown.innerHTML = '';
+        currentQuery = '';
+    }
 })();
 
 // ─── Toast Notifications ─────────────────────────────────────────

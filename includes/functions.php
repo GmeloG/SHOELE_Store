@@ -24,9 +24,9 @@ if (session_status() === PHP_SESSION_NONE) {
         $count = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn();
         if ($count === 0) {
             $stmt = $db->prepare("INSERT INTO users (nome, email, password, role) VALUES (?, ?, ?, ?)");
-            $stmt->execute(['Administrador',  'admin@shoele_store.test',  password_hash('admin123',   PASSWORD_DEFAULT), 'admin']);
-            $stmt->execute(['Gestor',         'gestor@shoele_store.test', password_hash('gestor123',  PASSWORD_DEFAULT), 'gestor']);
-            $stmt->execute(['Cliente Teste',  'cliente@shoele_store.test',password_hash('cliente123', PASSWORD_DEFAULT), 'cliente']);
+            $stmt->execute(['Administrador',  'admin@shoelestore.test',   password_hash('admin123',   PASSWORD_DEFAULT), 'admin']);
+            $stmt->execute(['Gestor',         'gestor@shoelestore.test',  password_hash('gestor123',  PASSWORD_DEFAULT), 'gestor']);
+            $stmt->execute(['Cliente Teste',  'cliente@shoelestore.test', password_hash('cliente123', PASSWORD_DEFAULT), 'cliente']);
         }
     } catch (Exception $e) {
         // Tabela ainda não existe (primeira inicialização do Docker)
@@ -507,6 +507,7 @@ function orderStatusBadge(string $status): string {
         'encomendada' => 'badge-warning',
         'em_armazem'  => 'badge-info',
         'entregue'    => 'badge-success',
+        'concluida'   => 'badge-concluida',
         'cancelada'   => 'badge-danger',
     ][$status] ?? 'badge-secondary';
 }
@@ -516,6 +517,44 @@ function orderStatusLabel(string $status): string {
         'encomendada' => 'Encomendada',
         'em_armazem'  => 'Em Armazém',
         'entregue'    => 'Entregue',
+        'concluida'   => 'Concluída',
         'cancelada'   => 'Cancelada',
     ][$status] ?? $status;
+}
+
+function getCriticalStockCount(int $threshold = 3): int {
+    $db   = getDB();
+    $stmt = $db->prepare("SELECT COUNT(*) FROM product_variants pv JOIN products p ON p.id = pv.product_id WHERE pv.stock <= ? AND pv.stock > 0 AND p.active = 1");
+    $stmt->execute([$threshold]);
+    return (int)$stmt->fetchColumn();
+}
+
+function getOutOfStockCount(): int {
+    $db = getDB();
+    return (int)$db->query("SELECT COUNT(*) FROM product_variants pv JOIN products p ON p.id = pv.product_id WHERE pv.stock = 0 AND p.active = 1")->fetchColumn();
+}
+
+function getPendingOrdersCount(): int {
+    $db = getDB();
+    return (int)$db->query("SELECT COUNT(*) FROM orders WHERE status = 'encomendada'")->fetchColumn();
+}
+
+function getNewFeedbackCount(): int {
+    try {
+        $db = getDB();
+        return (int)$db->query("SELECT COUNT(*) FROM orders WHERE status = 'concluida' AND feedback_cliente IS NOT NULL AND feedback_cliente != ''")->fetchColumn();
+    } catch (PDOException $e) {
+        return 0; // migration not yet applied
+    }
+}
+
+function getClientPendingConfirmCount(int $userId): int {
+    try {
+        $db   = getDB();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM orders WHERE user_id = ? AND status = 'entregue' AND cliente_confirmou = 0");
+        $stmt->execute([$userId]);
+        return (int)$stmt->fetchColumn();
+    } catch (PDOException $e) {
+        return 0; // migration not yet applied
+    }
 }
