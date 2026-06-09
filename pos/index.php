@@ -40,14 +40,14 @@ $recentSales = $db->query("
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS — Shoele Store</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
+    <link rel="icon" type="image/svg+xml" href="<?= BASE_URL ?>/assets/images/favicon.svg">
 </head>
 <body>
 
 <header class="site-header">
     <div class="container header-inner">
-        <a href="/" class="logo">
+        <a href="<?= BASE_URL ?>" class="logo">
             <span class="logo-icon">👟</span>
             <span class="logo-text">SHOELE<strong>STORE</strong></span>
         </a>
@@ -55,8 +55,8 @@ $recentSales = $db->query("
             <span style="font-size:13px; font-weight:700; color:var(--red); background:rgba(204,0,0,.08); padding:4px 12px; border-radius:100px;">🖥️ Shoele Store · POS</span>
         </nav>
         <div class="header-actions">
-            <a href="/admin/" class="btn btn-sm btn-outline">Admin</a>
-            <a href="/" class="btn btn-sm btn-ghost">Loja</a>
+            <a href="<?= BASE_URL ?>/admin/" class="btn btn-sm btn-outline">Admin</a>
+            <a href="<?= BASE_URL ?>" class="btn btn-sm btn-ghost">Loja</a>
         </div>
     </div>
 </header>
@@ -79,7 +79,7 @@ $recentSales = $db->query("
 
                     <div class="pos-card-img">
                         <?php if ($p['image'] && file_exists(__DIR__ . '/../uploads/produtos/' . $p['image'])): ?>
-                            <img src="/uploads/produtos/<?= e($p['image']) ?>" alt="">
+                            <img src="<?= BASE_URL ?>/uploads/produtos/<?= e($p['image']) ?>" alt="">
                         <?php else: ?>
                             👟
                         <?php endif; ?>
@@ -154,6 +154,6 @@ $recentSales = $db->query("
     </div>
 </div>
 
-<script src="/assets/js/main.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/main.js"></script>
 </body>
 </html>

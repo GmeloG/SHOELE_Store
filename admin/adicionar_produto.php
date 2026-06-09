@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $db->commit();
-            header('Location: /admin/produtos.php?saved=1');
+            header('Location: '.BASE_URL.'/admin/produtos.php?saved=1');
             exit;
         } catch (Exception $e) {
             $db->rollBack();
@@ -164,7 +164,7 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="flex gap-3">
                 <button type="submit" class="btn btn-red">Guardar Produto</button>
-                <a href="/admin/produtos.php" class="btn btn-ghost">Cancelar</a>
+                <a href="<?= BASE_URL ?>/admin/produtos.php" class="btn btn-ghost">Cancelar</a>
             </div>
         </form>
     </div>

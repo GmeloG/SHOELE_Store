@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
         $db = getDB();
         $db->prepare('UPDATE products SET active = 0 WHERE id = ?')->execute([$deleteId]);
     }
-    header('Location: /admin/produtos.php?deleted=1');
+    header('Location: '.BASE_URL.'/admin/produtos.php?deleted=1');
     exit;
 }
 
@@ -40,7 +40,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="admin-content">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <h1 class="admin-page-title" style="margin-bottom:0">Produtos</h1>
-            <a href="/admin/adicionar_produto.php" class="btn btn-red">+ Novo Produto</a>
+            <a href="<?= BASE_URL ?>/admin/adicionar_produto.php" class="btn btn-red">+ Novo Produto</a>
         </div>
         <p class="admin-page-subtitle"><?= count($products) ?> produtos no catálogo</p>
 
@@ -72,7 +72,7 @@ include __DIR__ . '/../includes/header.php';
                                 <div style="width:48px; height:48px; border-radius:6px; overflow:hidden; background:var(--bg);">
                                     <?php $thumb = $p['first_image'] ?? $p['image']; ?>
                                     <?php if ($thumb): ?>
-                                        <img src="/uploads/produtos/<?= e($thumb) ?>" style="width:100%;height:100%;object-fit:cover" alt="">
+                                        <img src="<?= BASE_URL ?>/uploads/produtos/<?= e($thumb) ?>" style="width:100%;height:100%;object-fit:cover" alt="">
                                     <?php else: ?>
                                         <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:24px">👟</div>
                                     <?php endif; ?>
@@ -95,7 +95,7 @@ include __DIR__ . '/../includes/header.php';
                             </td>
                             <td>
                                 <div class="flex gap-2">
-                                    <a href="/admin/editar_produto.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline">Editar</a>
+                                    <a href="<?= BASE_URL ?>/admin/editar_produto.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline">Editar</a>
                                     <form method="POST" style="display:inline" onsubmit="return confirm('Remover este produto?')">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="product_id" value="<?= $p['id'] ?>">

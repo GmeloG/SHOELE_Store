@@ -64,7 +64,7 @@ function requireLogin(string $msg = 'Por favor, inicie sessão para continuar.')
     if (!isLoggedIn()) {
         setFlash('warning', $msg);
         $next = urlencode($_SERVER['REQUEST_URI'] ?? '/');
-        header("Location: /login.php?next={$next}");
+        header("Location: ".BASE_URL."/login.php?next={$next}");
         exit;
     }
 }
@@ -83,7 +83,7 @@ function requireRole(array $roles): void {
         echo '<div style="font-size:64px;margin-bottom:16px">🔒</div>';
         echo '<h1 style="font-size:1.8rem;font-weight:900;">Acesso Negado</h1>';
         echo '<p class="text-muted mt-2">Não tens permissão para aceder a esta área.</p>';
-        echo '<a href="/" class="btn btn-primary mt-4">Voltar à Loja</a>';
+        echo '<a href="'.BASE_URL.'" class="btn btn-primary mt-4">Voltar à Loja</a>';
         echo '</div>';
         include __DIR__ . '/footer.php';
         exit;
@@ -426,7 +426,7 @@ function baseUrl(string $path = ''): string {
 
 function productImageSrc(?string $image): string {
     if ($image && file_exists(__DIR__ . '/../uploads/produtos/' . $image)) {
-        return '/uploads/produtos/' . $image;
+        return BASE_URL.'/uploads/produtos/' . $image;
     }
     return '/assets/images/placeholder.svg';
 }
@@ -467,7 +467,7 @@ function productGetColorMap(int $productId): array {
     foreach ($stmt->fetchAll() as $row) {
         if (!file_exists(__DIR__ . '/../uploads/produtos/' . $row['filename'])) continue;
         $key = $row['color'] ?: '__default__';
-        $map[$key][] = '/uploads/produtos/' . $row['filename'];
+        $map[$key][] = BASE_URL.'/uploads/produtos/' . $row['filename'];
     }
     return array_filter($map);
 }

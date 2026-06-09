@@ -7,7 +7,7 @@ require_once __DIR__ . '/includes/functions.php';
 
 $orderId = (int)($_GET['id'] ?? 0);
 if (!$orderId) {
-    header('Location: /');
+    header('Location: '.BASE_URL.'/');
     exit;
 }
 
@@ -22,7 +22,7 @@ $stmt->execute([$orderId]);
 $order = $stmt->fetch();
 
 if (!$order) {
-    header('Location: /');
+    header('Location: '.BASE_URL.'/');
     exit;
 }
 
@@ -67,8 +67,8 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <a href="/" class="btn btn-red btn-lg">Continuar a comprar</a>
-        <a href="/cliente/encomendas.php" class="btn btn-outline btn-lg">Minhas Encomendas</a>
+        <a href="<?= BASE_URL ?>" class="btn btn-red btn-lg">Continuar a comprar</a>
+        <a href="<?= BASE_URL ?>/cliente/encomendas.php" class="btn btn-outline btn-lg">Minhas Encomendas</a>
     </div>
 </div>
 

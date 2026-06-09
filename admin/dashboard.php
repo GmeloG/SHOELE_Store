@@ -62,7 +62,7 @@ require_once __DIR__ . '/includes/admin_nav.php';
             <div class="notif-panel-title">🔔 Notificações</div>
             <div class="notif-items">
                 <?php if ($notif['pending_orders'] > 0): ?>
-                <a href="/admin/encomendas.php?status=encomendada" class="notif-item notif-warning">
+                <a href="<?= BASE_URL ?>/admin/encomendas.php?status=encomendada" class="notif-item notif-warning">
                     <span class="notif-icon">📦</span>
                     <div>
                         <strong><?= $notif['pending_orders'] ?> encomenda<?= $notif['pending_orders'] > 1 ? 's' : '' ?> pendente<?= $notif['pending_orders'] > 1 ? 's' : '' ?></strong>
@@ -73,7 +73,7 @@ require_once __DIR__ . '/includes/admin_nav.php';
                 <?php endif; ?>
 
                 <?php if ($notif['critical_stock'] > 0): ?>
-                <a href="/admin/relatorios.php" class="notif-item notif-danger">
+                <a href="<?= BASE_URL ?>/admin/relatorios.php" class="notif-item notif-danger">
                     <span class="notif-icon">⚠️</span>
                     <div>
                         <strong><?= $notif['critical_stock'] ?> variante<?= $notif['critical_stock'] > 1 ? 's' : '' ?> com stock crítico</strong>
@@ -84,7 +84,7 @@ require_once __DIR__ . '/includes/admin_nav.php';
                 <?php endif; ?>
 
                 <?php if ($notif['new_feedback'] > 0): ?>
-                <a href="/admin/encomendas.php?status=concluida" class="notif-item notif-info">
+                <a href="<?= BASE_URL ?>/admin/encomendas.php?status=concluida" class="notif-item notif-info">
                     <span class="notif-icon">💬</span>
                     <div>
                         <strong><?= $notif['new_feedback'] ?> avaliação<?= $notif['new_feedback'] > 1 ? 'ões' : '' ?> de cliente<?= $notif['new_feedback'] > 1 ? 's' : '' ?></strong>
@@ -95,7 +95,7 @@ require_once __DIR__ . '/includes/admin_nav.php';
                 <?php endif; ?>
 
                 <?php if ($notif['cancelled_today'] > 0): ?>
-                <a href="/admin/encomendas.php?status=cancelada" class="notif-item notif-secondary">
+                <a href="<?= BASE_URL ?>/admin/encomendas.php?status=cancelada" class="notif-item notif-secondary">
                     <span class="notif-icon">✕</span>
                     <div>
                         <strong><?= $notif['cancelled_today'] ?> cancelamento<?= $notif['cancelled_today'] > 1 ? 's' : '' ?> hoje</strong>
@@ -136,7 +136,7 @@ require_once __DIR__ . '/includes/admin_nav.php';
             <div class="table-card">
                 <div class="table-card-header">
                     <h3>Encomendas Recentes</h3>
-                    <a href="/admin/encomendas.php" class="btn btn-sm btn-outline">Ver todas</a>
+                    <a href="<?= BASE_URL ?>/admin/encomendas.php" class="btn btn-sm btn-outline">Ver todas</a>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -145,7 +145,7 @@ require_once __DIR__ . '/includes/admin_nav.php';
                     <tbody>
                         <?php foreach ($recentOrders as $o): ?>
                             <tr>
-                                <td><a href="/admin/encomendas.php?id=<?= $o['id'] ?>">#<?= $o['id'] ?></a></td>
+                                <td><a href="<?= BASE_URL ?>/admin/encomendas.php?id=<?= $o['id'] ?>">#<?= $o['id'] ?></a></td>
                                 <td><?= e($o['name']) ?></td>
                                 <td><?= formatPrice((float)$o['total']) ?></td>
                                 <td><span class="badge <?= orderStatusBadge($o['status']) ?>"><?= orderStatusLabel($o['status']) ?></span></td>
@@ -159,7 +159,7 @@ require_once __DIR__ . '/includes/admin_nav.php';
             <div class="table-card">
                 <div class="table-card-header">
                     <h3>⚠️ Stock Crítico (≤ 3 un.)</h3>
-                    <a href="/admin/relatorios.php" class="btn btn-sm btn-outline">Relatórios</a>
+                    <a href="<?= BASE_URL ?>/admin/relatorios.php" class="btn btn-sm btn-outline">Relatórios</a>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -199,7 +199,7 @@ require_once __DIR__ . '/includes/admin_nav.php';
                 Repõe o stock o mais brevemente possível.
             </p>
             <div style="display:flex; gap:10px; justify-content:center">
-                <a href="/admin/relatorios.php" class="btn btn-red btn-sm">Ver Stock</a>
+                <a href="<?= BASE_URL ?>/admin/relatorios.php" class="btn btn-red btn-sm">Ver Stock</a>
                 <button class="btn btn-outline btn-sm" onclick="dismissCriticalPopup()">Ignorar</button>
             </div>
         </div>

@@ -16,7 +16,7 @@ if ($product) {
 }
 
 if (!$product) {
-    header('Location: /admin/produtos.php');
+    header('Location: '.BASE_URL.'/admin/produtos.php');
     exit;
 }
 
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $db->commit();
-            header('Location: /admin/produtos.php?saved=1');
+            header('Location: '.BASE_URL.'/admin/produtos.php?saved=1');
             exit;
         } catch (Exception $e) {
             $db->rollBack();
@@ -197,7 +197,7 @@ include __DIR__ . '/../includes/header.php';
                                     <?php foreach ($imgs as $img): ?>
                                         <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
                                             <div style="position:relative">
-                                                <img src="/uploads/produtos/<?= e($img['filename']) ?>"
+                                                <img src="<?= BASE_URL ?>/uploads/produtos/<?= e($img['filename']) ?>"
                                                      style="width:90px;height:90px;object-fit:cover;border:2px solid var(--border);border-radius:4px">
                                                 <label style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);padding:2px 5px;cursor:pointer;display:flex;align-items:center;gap:3px;border-radius:3px">
                                                     <input type="checkbox" name="delete_images[]" value="<?= $img['id'] ?>">
@@ -273,7 +273,7 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="flex gap-3">
                 <button type="submit" class="btn btn-red">Guardar Alterações</button>
-                <a href="/admin/produtos.php" class="btn btn-ghost">Cancelar</a>
+                <a href="<?= BASE_URL ?>/admin/produtos.php" class="btn btn-ghost">Cancelar</a>
             </div>
         </form>
     </div>

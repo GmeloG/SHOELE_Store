@@ -34,8 +34,8 @@ $results = array_map(static function (array $p): array {
         'id'    => $p['id'],
         'name'  => $p['brand'] . ' ' . $p['model'],
         'price' => number_format((float)$p['base_price'], 2, ',', '.') . ' €',
-        'thumb' => $p['thumb'] ? '/uploads/produtos/' . $p['thumb'] : null,
-        'url'   => '/produto.php?id=' . $p['id'],
+        'thumb' => $p['thumb'] ? BASE_URL.'/uploads/produtos/' . $p['thumb'] : null,
+        'url'   => BASE_URL.'/produto.php?id=' . $p['id'],
     ];
 }, $stmt->fetchAll());
 

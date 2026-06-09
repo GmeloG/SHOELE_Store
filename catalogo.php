@@ -22,9 +22,9 @@ include __DIR__ . '/includes/header.php';
             <p id="product-count"><?= count($products) ?> artigo<?= count($products) != 1 ? 's' : '' ?> encontrado<?= count($products) != 1 ? 's' : '' ?></p>
         </div>
         <div class="flex flex-wrap gap-2">
-            <a href="/catalogo.php" class="btn btn-sm <?= !$brandFilter ? 'btn-primary' : 'btn-outline' ?>">Todos</a>
+            <a href="<?= BASE_URL ?>/catalogo.php" class="btn btn-sm <?= !$brandFilter ? 'btn-primary' : 'btn-outline' ?>">Todos</a>
             <?php foreach ($brands as $brand): ?>
-                <a href="/catalogo.php?brand=<?= urlencode($brand) ?>"
+                <a href="<?= BASE_URL ?>/catalogo.php?brand=<?= urlencode($brand) ?>"
                    class="btn btn-sm <?= strtolower($brandFilter) === strtolower($brand) ? 'btn-primary' : 'btn-outline' ?>">
                     <?= e($brand) ?>
                 </a>
@@ -37,14 +37,14 @@ include __DIR__ . '/includes/header.php';
             <div class="icon">🔍</div>
             <h3>Nenhum produto encontrado</h3>
             <p>Tenta remover os filtros ou voltar mais tarde.</p>
-            <a href="/catalogo.php" class="btn btn-primary">Ver todos</a>
+            <a href="<?= BASE_URL ?>/catalogo.php" class="btn btn-primary">Ver todos</a>
         </div>
     <?php else: ?>
         <div class="products-grid" id="products-grid">
             <?php foreach ($products as $p): ?>
-                <?php $fi = $p['first_image'] ?? $p['image']; $imgSrc = $fi ? '/uploads/produtos/' . $fi : null; ?>
+                <?php $fi = $p['first_image'] ?? $p['image']; $imgSrc = $fi ? BASE_URL.'/uploads/produtos/' . $fi : null; ?>
                 <article class="product-card" data-search="<?= strtolower($p['brand'] . ' ' . $p['model']) ?>">
-                    <a href="/produto.php?id=<?= $p['id'] ?>" class="card-image">
+                    <a href="<?= BASE_URL ?>/produto.php?id=<?= $p['id'] ?>" class="card-image">
                         <?php if ($imgSrc): ?>
                             <img src="<?= e($imgSrc) ?>" alt="<?= e($p['brand'] . ' ' . $p['model']) ?>" loading="lazy">
                         <?php else: ?>
@@ -57,7 +57,7 @@ include __DIR__ . '/includes/header.php';
                         <div class="card-price"><?= formatPrice((float)$p['base_price']) ?></div>
                     </div>
                     <div class="card-footer">
-                        <a href="/produto.php?id=<?= $p['id'] ?>" class="btn btn-primary btn-full btn-sm">Ver Produto</a>
+                        <a href="<?= BASE_URL ?>/produto.php?id=<?= $p['id'] ?>" class="btn btn-primary btn-full btn-sm">Ver Produto</a>
                     </div>
                 </article>
             <?php endforeach; ?>

@@ -49,7 +49,7 @@ include __DIR__ . '/includes/header.php';
             </h1>
             <p class="text-muted"><?= count($searchResults) ?> produto<?= count($searchResults) != 1 ? 's' : '' ?> encontrado<?= count($searchResults) != 1 ? 's' : '' ?></p>
         </div>
-        <a href="/" class="btn btn-outline btn-sm">← Voltar ao início</a>
+        <a href="<?= BASE_URL ?>" class="btn btn-outline btn-sm">← Voltar ao início</a>
     </div>
 
     <?php if (empty($searchResults)): ?>
@@ -57,16 +57,16 @@ include __DIR__ . '/includes/header.php';
             <div class="icon">🔍</div>
             <h3>Nenhum produto encontrado</h3>
             <p>Tenta pesquisar por marca ou modelo.</p>
-            <a href="/" class="btn btn-red mt-3">Ver todos os produtos</a>
+            <a href="<?= BASE_URL ?>" class="btn btn-red mt-3">Ver todos os produtos</a>
         </div>
     <?php else: ?>
         <div class="products-grid">
             <?php foreach ($searchResults as $p):
                 $imgSrc = $p['first_image']
-                    ? '/uploads/produtos/' . $p['first_image']
-                    : (($p['image'] ?? null) ? '/uploads/produtos/' . $p['image'] : null);
+                    ? BASE_URL.'/uploads/produtos/' . $p['first_image']
+                    : (($p['image'] ?? null) ? BASE_URL.'/uploads/produtos/' . $p['image'] : null);
             ?>
-            <a href="/produto.php?id=<?= $p['id'] ?>" class="product-card">
+            <a href="<?= BASE_URL ?>/produto.php?id=<?= $p['id'] ?>" class="product-card">
                 <div class="card-image">
                     <?php if ($imgSrc): ?>
                         <img src="<?= e($imgSrc) ?>" alt="<?= e($p['brand'] . ' ' . $p['model']) ?>" loading="lazy">
@@ -127,7 +127,7 @@ include __DIR__ . '/includes/header.php';
     <div class="carousel-track" id="carousel-track">
         <?php foreach ($bestSellers as $i => $p):
             $fi     = $p['first_image'] ?? $p['image'];
-            $imgSrc = $fi ? '/uploads/produtos/' . $fi : null;
+            $imgSrc = $fi ? BASE_URL.'/uploads/produtos/' . $fi : null;
             $hasImg = (bool)$imgSrc;
         ?>
         <div class="carousel-slide" role="group" aria-label="Slide <?= $i+1 ?> de <?= count($bestSellers) ?>">
@@ -142,7 +142,7 @@ include __DIR__ . '/includes/header.php';
                     <div class="slide-brand"><?= e($p['brand']) ?></div>
                     <div class="slide-model"><?= e($p['model']) ?></div>
                     <div class="slide-price"><?= formatPrice((float)$p['base_price']) ?></div>
-                    <a href="/produto.php?id=<?= $p['id'] ?>" class="slide-cta">Ver Produto</a>
+                    <a href="<?= BASE_URL ?>/produto.php?id=<?= $p['id'] ?>" class="slide-cta">Ver Produto</a>
                 </div>
                 <div class="slide-image" aria-hidden="true">
                     <?php if ($hasImg): ?>
@@ -232,7 +232,7 @@ include __DIR__ . '/includes/header.php';
         <?php else: ?>
             <div class="brands-grid">
                 <?php foreach ($brands as $b): ?>
-                    <a href="/catalogo.php?brand=<?= urlencode($b['brand']) ?>" class="brand-card">
+                    <a href="<?= BASE_URL ?>/catalogo.php?brand=<?= urlencode($b['brand']) ?>" class="brand-card">
                         <div class="brand-icon">👟</div>
                         <div class="brand-name"><?= e($b['brand']) ?></div>
                         <div class="brand-count"><?= $b['total'] ?> produto<?= $b['total'] != 1 ? 's' : '' ?></div>

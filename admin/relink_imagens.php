@@ -77,7 +77,7 @@ include __DIR__ . '/../includes/header.php';
             <div style="font-size:48px; margin-bottom:12px;">✅</div>
             <h3>Todas as imagens estão ligadas!</h3>
             <p class="text-muted">Não existem imagens órfãs no disco.</p>
-            <a href="/admin/produtos.php" class="btn btn-outline mt-3">← Voltar aos produtos</a>
+            <a href="<?= BASE_URL ?>/admin/produtos.php" class="btn btn-outline mt-3">← Voltar aos produtos</a>
         </div>
     <?php else: ?>
 
@@ -115,7 +115,7 @@ include __DIR__ . '/../includes/header.php';
         <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:12px; margin-bottom:24px;">
             <?php foreach ($orphans as $f):
                 $fname = basename($f);
-                $imgUrl = '/uploads/produtos/' . $fname;
+                $imgUrl = BASE_URL.'/uploads/produtos/' . $fname;
                 preg_match('/prod_([0-9a-f]{8})/i', $fname, $m);
                 $groupKey = $m[1] ?? 'outros';
             ?>
@@ -142,7 +142,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
         <div style="display:flex; gap:12px; align-items:center;">
             <button type="submit" class="btn btn-red btn-lg">Guardar ligações</button>
-            <a href="/admin/produtos.php" class="btn btn-outline">Cancelar</a>
+            <a href="<?= BASE_URL ?>/admin/produtos.php" class="btn btn-outline">Cancelar</a>
             <span style="font-size:13px; color:var(--muted);"><?= count($orphans) ?> imagens para ligar</span>
         </div>
     </form>

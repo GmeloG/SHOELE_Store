@@ -1,1 +1,1 @@
-<?php header('Location: /admin/dashboard.php'); exit; ?>
+<?php header('Location: '.BASE_URL.'/admin/dashboard.php'); exit; ?>

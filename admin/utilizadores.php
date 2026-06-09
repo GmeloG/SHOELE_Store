@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db->prepare('INSERT INTO users (nome, email, password, role) VALUES (?, ?, ?, ?)')
                    ->execute([$nome, $email, password_hash($password, PASSWORD_DEFAULT), $role]);
                 setFlash('success', "Utilizador {$nome} criado com sucesso.");
-                header('Location: /admin/utilizadores.php');
+                header('Location: '.BASE_URL.'/admin/utilizadores.php');
                 exit;
             }
         }
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user']['role']  = $role;
                     }
                     setFlash('success', 'Utilizador atualizado com sucesso.');
-                    header('Location: /admin/utilizadores.php');
+                    header('Location: '.BASE_URL.'/admin/utilizadores.php');
                     exit;
                 }
             }
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('DELETE FROM users WHERE id = ?')->execute([$deleteId]);
             setFlash('success', 'Utilizador eliminado.');
         }
-        header('Location: /admin/utilizadores.php');
+        header('Location: '.BASE_URL.'/admin/utilizadores.php');
         exit;
     }
 }
@@ -178,7 +178,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="flex gap-3">
                         <button type="submit" class="btn btn-red">Criar Utilizador</button>
-                        <a href="/admin/utilizadores.php" class="btn btn-ghost">Cancelar</a>
+                        <a href="<?= BASE_URL ?>/admin/utilizadores.php" class="btn btn-ghost">Cancelar</a>
                     </div>
                 </form>
             </div>
@@ -226,7 +226,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                     <div class="flex gap-3">
                         <button type="submit" class="btn btn-red">Guardar Alterações</button>
-                        <a href="/admin/utilizadores.php" class="btn btn-ghost">Cancelar</a>
+                        <a href="<?= BASE_URL ?>/admin/utilizadores.php" class="btn btn-ghost">Cancelar</a>
                     </div>
                 </form>
             </div>

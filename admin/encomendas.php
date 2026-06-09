@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
                ->execute([$newStatus, $orderId]);
 
             $db->commit();
-            header('Location: /admin/encomendas.php?updated=1');
+            header('Location: '.BASE_URL.'/admin/encomendas.php?updated=1');
             exit;
         } catch (Exception $e) {
             $db->rollBack();
@@ -219,7 +219,7 @@ include __DIR__ . '/../includes/header.php';
 
         <!-- Filtros -->
         <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-            <a href="/admin/encomendas.php" class="btn btn-sm <?= !$filterStatus ? 'btn-primary' : 'btn-outline' ?>">Todas</a>
+            <a href="<?= BASE_URL ?>/admin/encomendas.php" class="btn btn-sm <?= !$filterStatus ? 'btn-primary' : 'btn-outline' ?>">Todas</a>
             <?php foreach ($allStatuses as $s): ?>
                 <a href="?status=<?= $s ?>" class="btn btn-sm <?= $filterStatus === $s ? 'btn-primary' : 'btn-outline' ?>"><?= orderStatusLabel($s) ?></a>
             <?php endforeach; ?>

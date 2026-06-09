@@ -7,16 +7,16 @@ function adminNav(string $current = ''): string {
 
     $role  = currentRole();
     $links = [
-        'dashboard'  => ['icon' => '📊', 'label' => 'Dashboard',    'href' => '/admin/dashboard.php'],
-        'produtos'   => ['icon' => '👟', 'label' => 'Produtos',     'href' => '/admin/produtos.php'],
-        'adicionar'  => ['icon' => '➕', 'label' => 'Novo Produto', 'href' => '/admin/adicionar_produto.php'],
-        'encomendas' => ['icon' => '📦', 'label' => 'Encomendas',   'href' => '/admin/encomendas.php'],
-        'relatorios' => ['icon' => '📈', 'label' => 'Relatórios',   'href' => '/admin/relatorios.php'],
+        'dashboard'  => ['icon' => '📊', 'label' => 'Dashboard',    'href' => BASE_URL.'/admin/dashboard.php'],
+        'produtos'   => ['icon' => '👟', 'label' => 'Produtos',     'href' => BASE_URL.'/admin/produtos.php'],
+        'adicionar'  => ['icon' => '➕', 'label' => 'Novo Produto', 'href' => BASE_URL.'/admin/adicionar_produto.php'],
+        'encomendas' => ['icon' => '📦', 'label' => 'Encomendas',   'href' => BASE_URL.'/admin/encomendas.php'],
+        'relatorios' => ['icon' => '📈', 'label' => 'Relatórios',   'href' => BASE_URL.'/admin/relatorios.php'],
     ];
 
     // Utilizadores: apenas admin
     if ($role === 'admin') {
-        $links['utilizadores'] = ['icon' => '👥', 'label' => 'Utilizadores', 'href' => '/admin/utilizadores.php'];
+        $links['utilizadores'] = ['icon' => '👥', 'label' => 'Utilizadores', 'href' => BASE_URL.'/admin/utilizadores.php'];
     }
 
     $html  = '<aside class="admin-sidebar">';
@@ -34,9 +34,9 @@ function adminNav(string $current = ''): string {
     $html .= '</div>';
     $html .= '<div class="sidebar-section" style="margin-top:auto; padding-top:16px;">';
     $html .= '<div class="sidebar-label">Sistema</div>';
-    $html .= '<a href="/pos/"    class="sidebar-link"><span class="icon">🖥️</span>Ponto de Venda</a>';
-    $html .= '<a href="/"        class="sidebar-link"><span class="icon">🛍️</span>Ver Loja</a>';
-    $html .= '<a href="/logout.php" class="sidebar-link"><span class="icon">🚪</span>Logout</a>';
+    $html .= '<a href="' . BASE_URL . '/pos/"    class="sidebar-link"><span class="icon">🖥️</span>Ponto de Venda</a>';
+    $html .= '<a href="' . BASE_URL . '"        class="sidebar-link"><span class="icon">🛍️</span>Ver Loja</a>';
+    $html .= '<a href="' . BASE_URL . '/logout.php" class="sidebar-link"><span class="icon">🚪</span>Logout</a>';
     $html .= '</div>';
     $html .= '</aside>';
 

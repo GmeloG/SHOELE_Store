@@ -48,7 +48,7 @@
         currentQuery = q;
 
         try {
-            const res  = await fetch('/api/search.php?q=' + encodeURIComponent(q));
+            const res  = await fetch(BASE_URL + '/api/search.php?q=' + encodeURIComponent(q));
             const data = await res.json();
 
             if (inp.value.trim() !== q) return; // stale
@@ -67,10 +67,7 @@
                         <div class="search-result-price">${p.price}</div>
                     </div>
                 </a>
-            `).join('') + `
-                <a class="search-result-all" href="/?q=${encodeURIComponent(q)}">
-                    Ver todos os resultados para "${q}" →
-                </a>`;
+            `).join('');
 
             dropdown.hidden = false;
         } catch (_) {
@@ -107,7 +104,7 @@ function showToast(message, type = 'info') {
 
 async function cartAdd(variantId, qty = 1) {
     try {
-        const res = await fetch('/api/cart.php', {
+        const res = await fetch(BASE_URL + '/api/cart.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'add', variant_id: variantId, qty })
@@ -127,7 +124,7 @@ async function cartAdd(variantId, qty = 1) {
 }
 
 async function cartUpdate(variantId, qty) {
-    const res = await fetch('/api/cart.php', {
+    const res = await fetch(BASE_URL + '/api/cart.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update', variant_id: variantId, qty })
@@ -143,7 +140,7 @@ async function cartUpdate(variantId, qty) {
 }
 
 async function cartRemove(variantId) {
-    const res = await fetch('/api/cart.php', {
+    const res = await fetch(BASE_URL + '/api/cart.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'remove', variant_id: variantId })
@@ -218,7 +215,7 @@ function updateCartBadge(count) {
             selectedVariant = null;
 
             const productId = btn.dataset.productId;
-            const res   = await fetch(`/api/variant_stock.php?product_id=${productId}&color=${encodeURIComponent(selectedColor)}`);
+            const res   = await fetch(`${BASE_URL}/api/variant_stock.php?product_id=${productId}&color=${encodeURIComponent(selectedColor)}`);
             const sizes = await res.json();
 
             // Reconstruir os botões de tamanho para esta cor
@@ -319,7 +316,7 @@ function refreshCartTotals() {
         const productId   = card.dataset.productId;
         const productName = card.dataset.name;
 
-        fetch(`/api/variant_stock.php?product_id=${productId}&all=1`)
+        fetch(`${BASE_URL}/api/variant_stock.php?product_id=${productId}&all=1`)
             .then(r => r.json())
             .then(variants => {
                 const modal = document.getElementById('variant-modal');
@@ -453,7 +450,7 @@ function refreshCartTotals() {
         btn.textContent = 'A processar...';
 
         try {
-            const res = await fetch('/api/pos_sale.php', {
+            const res = await fetch(BASE_URL + '/api/pos_sale.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items: posCart })

@@ -7,7 +7,7 @@ require_once __DIR__ . '/includes/functions.php';
 
 // Já autenticado
 if (isLoggedIn()) {
-    header('Location: /');
+    header('Location: '.BASE_URL.'/');
     exit;
 }
 
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_regenerate_id(true);
 
             setFlash('success', "Conta criada com sucesso! Bem-vindo(a), {$nome}.");
-            header('Location: /');
+            header('Location: '.BASE_URL.'/');
             exit;
         }
     }
@@ -100,7 +100,7 @@ include __DIR__ . '/includes/header.php';
 
         <div style="text-align:center; margin-top:20px; font-size:14px; color:var(--muted);">
             Já tens conta?
-            <a href="/login.php" style="color:var(--dark); font-weight:600;">Iniciar sessão</a>
+            <a href="<?= BASE_URL ?>/login.php" style="color:var(--dark); font-weight:600;">Iniciar sessão</a>
         </div>
     </form>
 </div>

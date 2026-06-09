@@ -13,7 +13,7 @@ requireLogin('Para finalizar a compra, tem de iniciar sessão ou criar uma conta
 $items = cartItems();
 $total = cartTotal();
 if (empty($items)) {
-    header('Location: /carrinho.php');
+    header('Location: '.BASE_URL.'/carrinho.php');
     exit;
 }
 
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             cartClear();
-            header("Location: /encomenda_sucesso.php?id={$orderId}");
+            header("Location: ".BASE_URL."/encomenda_sucesso.php?id={$orderId}");
             exit;
 
         } catch (Exception $e) {
@@ -118,8 +118,8 @@ include __DIR__ . '/includes/header.php';
             <?php foreach ($items as $item): ?>
                 <div class="summary-item">
                     <div class="summary-item-img">
-                        <?php if ($item['image'] && file_exists(__DIR__ . '/uploads/produtos/' . $item['image'])): ?>
-                            <img src="/uploads/produtos/<?= e($item['image']) ?>" alt="">
+                        <?php if ($item['image'] && file_exists(__DIR__ . BASE_URL.'/uploads/produtos/' . $item['image'])): ?>
+                            <img src="<?= BASE_URL ?>/uploads/produtos/<?= e($item['image']) ?>" alt="">
                         <?php else: ?>
                             <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--bg)">👟</div>
                         <?php endif; ?>
@@ -141,7 +141,7 @@ include __DIR__ . '/includes/header.php';
                 <span><?= formatPrice($total) ?></span>
             </div>
 
-            <a href="/carrinho.php" class="btn btn-ghost btn-full btn-sm mt-2" style="justify-content:center;">
+            <a href="<?= BASE_URL ?>/carrinho.php" class="btn btn-ghost btn-full btn-sm mt-2" style="justify-content:center;">
                 ← Editar carrinho
             </a>
         </div>

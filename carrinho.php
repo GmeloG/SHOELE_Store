@@ -20,7 +20,7 @@ include __DIR__ . '/includes/header.php';
             <div class="icon">🛒</div>
             <h3>O teu carrinho está vazio</h3>
             <p>Ainda não adicionaste nenhum produto. Explora a nossa coleção!</p>
-            <a href="/" class="btn btn-red btn-lg">Ver Produtos</a>
+            <a href="<?= BASE_URL ?>" class="btn btn-red btn-lg">Ver Produtos</a>
         </div>
     <?php else: ?>
         <div class="cart-layout">
@@ -43,15 +43,15 @@ include __DIR__ . '/includes/header.php';
                                 <td>
                                     <div class="cart-item-info">
                                         <div class="cart-item-img">
-                                            <?php if ($item['image'] && file_exists(__DIR__ . '/uploads/produtos/' . $item['image'])): ?>
-                                                <img src="/uploads/produtos/<?= e($item['image']) ?>" alt="">
+                                            <?php if ($item['image'] && file_exists(__DIR__ . BASE_URL.'/uploads/produtos/' . $item['image'])): ?>
+                                                <img src="<?= BASE_URL ?>/uploads/produtos/<?= e($item['image']) ?>" alt="">
                                             <?php else: ?>
                                                 <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;background:var(--bg)">👟</div>
                                             <?php endif; ?>
                                         </div>
                                         <div>
                                             <div class="cart-item-name">
-                                                <a href="/produto.php?id=<?= $item['product_id'] ?>"><?= e($item['brand'] . ' ' . $item['model']) ?></a>
+                                                <a href="<?= BASE_URL ?>/produto.php?id=<?= $item['product_id'] ?>"><?= e($item['brand'] . ' ' . $item['model']) ?></a>
                                             </div>
                                         </div>
                                     </div>
@@ -77,7 +77,7 @@ include __DIR__ . '/includes/header.php';
                 </table>
 
                 <div style="margin-top:16px; display:flex; gap:12px;">
-                    <a href="/" class="btn btn-outline">← Continuar a comprar</a>
+                    <a href="<?= BASE_URL ?>" class="btn btn-outline">← Continuar a comprar</a>
                 </div>
             </div>
 
@@ -102,7 +102,7 @@ include __DIR__ . '/includes/header.php';
                     <span><?= formatPrice($total) ?></span>
                 </div>
 
-                <a href="/checkout.php" class="btn btn-red btn-full btn-lg mt-3">
+                <a href="<?= BASE_URL ?>/checkout.php" class="btn btn-red btn-full btn-lg mt-3">
                     Finalizar Encomenda
                 </a>
             </div>
@@ -111,9 +111,10 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <script>
+const BASE_URL = <?= json_encode(BASE_URL) ?>;
 async function removeItem(variantId) {
     if (!confirm('Remover este produto do carrinho?')) return;
-    await fetch('/api/cart.php', {
+    await fetch(BASE_URL + '/api/cart.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'remove', variant_id: variantId })

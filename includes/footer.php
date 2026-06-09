@@ -5,10 +5,10 @@
         <span class="logo-text-sm" style="font-size:18px;font-weight:900;letter-spacing:.06em">SHOELE<strong>STORE</strong></span>
         <p style="color:var(--muted,#888);font-size:13px;margin:0">Sistema de gestão de stocks para ponto de venda.</p>
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px 24px;margin-top:4px">
-            <a href="/" style="font-size:13px;color:var(--muted,#888);text-decoration:none">Loja</a>
-            <a href="/carrinho.php" style="font-size:13px;color:var(--muted,#888);text-decoration:none">Carrinho</a>
-            <a href="/login.php" style="font-size:13px;color:var(--muted,#888);text-decoration:none">Login</a>
-            <a href="/info.php" style="font-size:13px;color:var(--muted,#888);text-decoration:none">Info</a>
+            <a href="<?= BASE_URL ?>" style="font-size:13px;color:var(--muted,#888);text-decoration:none">Loja</a>
+            <a href="<?= BASE_URL ?>/carrinho.php" style="font-size:13px;color:var(--muted,#888);text-decoration:none">Carrinho</a>
+            <a href="<?= BASE_URL ?>/login.php" style="font-size:13px;color:var(--muted,#888);text-decoration:none">Login</a>
+            <a href="<?= BASE_URL ?>/info.php" style="font-size:13px;color:var(--muted,#888);text-decoration:none">Info</a>
         </div>
     </div>
     <div style="border-top:1px solid var(--border,#e5e5e5);padding:16px 0;text-align:center">
@@ -16,7 +16,7 @@
     </div>
 </footer>
 
-<script src="/assets/js/main.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/main.js?v=<?= filemtime(__DIR__.'/../assets/js/main.js') ?>"></script>
 </body>
 
 </html>

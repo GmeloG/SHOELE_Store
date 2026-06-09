@@ -11,7 +11,7 @@ if (!$product) {
     http_response_code(404);
     define('PAGE_TITLE', 'Produto não encontrado');
     include __DIR__ . '/includes/header.php';
-    echo '<div class="container text-center" style="padding:80px 0"><h1>Produto não encontrado</h1><a href="/" class="btn btn-primary mt-4">Voltar à loja</a></div>';
+    echo '<div class="container text-center" style="padding:80px 0"><h1>Produto não encontrado</h1><a href="'.BASE_URL.'" class="btn btn-primary mt-4">Voltar à loja</a></div>';
     include __DIR__ . '/includes/footer.php';
     exit;
 }
@@ -32,15 +32,16 @@ $colors = productColors($id);
 $defaultColor = $colors[0] ?? null;
 $defaultSizes = $defaultColor ? productSizes($id, $defaultColor) : [];
 
+
 include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="container product-detail">
     <!-- Breadcrumb -->
     <nav style="font-size:13px; color:var(--muted); margin-bottom:32px;">
-        <a href="/" style="color:var(--muted)">Loja</a>
+        <a href="<?= BASE_URL ?>" style="color:var(--muted)">Loja</a>
         <span style="margin:0 8px">›</span>
-        <a href="/?brand=<?= urlencode($product['brand']) ?>" style="color:var(--muted)"><?= e($product['brand']) ?></a>
+        <a href="<?= BASE_URL ?>/?brand=<?= urlencode($product['brand']) ?>" style="color:var(--muted)"><?= e($product['brand']) ?></a>
         <span style="margin:0 8px">›</span>
         <span style="color:var(--dark); font-weight:600"><?= e($product['model']) ?></span>
     </nav>
@@ -51,7 +52,7 @@ include __DIR__ . '/includes/header.php';
             <?php if (!empty($productImages)): ?>
                 <div class="gallery-main-wrap">
                     <img id="gallery-main"
-                         src="/uploads/produtos/<?= e($productImages[0]['filename']) ?>"
+                         src="<?= BASE_URL ?>/uploads/produtos/<?= e($productImages[0]['filename']) ?>"
                          alt="<?= e($product['brand'] . ' ' . $product['model']) ?>">
                     <button class="gallery-nav-btn gallery-nav-prev" id="gallery-prev" aria-label="Imagem anterior">&#10094;</button>
                     <button class="gallery-nav-btn gallery-nav-next" id="gallery-next" aria-label="Imagem seguinte">&#10095;</button>
@@ -59,7 +60,7 @@ include __DIR__ . '/includes/header.php';
                 <?php if (count($productImages) > 1): ?>
                     <div class="gallery-thumbs" id="gallery-thumbs">
                         <?php foreach ($productImages as $i => $img): ?>
-                            <img src="/uploads/produtos/<?= e($img['filename']) ?>"
+                            <img src="<?= BASE_URL ?>/uploads/produtos/<?= e($img['filename']) ?>"
                                  class="gallery-thumb <?= $i === 0 ? 'active' : '' ?>"
                                  alt="">
                         <?php endforeach; ?>
@@ -116,7 +117,7 @@ include __DIR__ . '/includes/header.php';
             <?php endif; ?>
 
             <div style="margin-top:24px;">
-                <a href="/carrinho.php" class="btn btn-outline btn-full">Ver Carrinho</a>
+                <a href="<?= BASE_URL ?>/carrinho.php" class="btn btn-outline btn-full">Ver Carrinho</a>
             </div>
         </div>
     </div>

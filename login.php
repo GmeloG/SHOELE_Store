@@ -7,7 +7,7 @@ require_once __DIR__ . '/includes/functions.php';
 
 // Já autenticado → redirecionar
 if (isLoggedIn()) {
-    header('Location: ' . (hasRole('admin', 'gestor') ? '/admin/dashboard.php' : '/'));
+    header('Location: ' . (hasRole('admin', 'gestor') ? BASE_URL.'/admin/dashboard.php' : BASE_URL.'/'));
     exit;
 }
 
@@ -44,9 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($next && str_starts_with($next, '/')) {
                 header("Location: {$next}");
             } elseif ($user['role'] === 'admin' || $user['role'] === 'gestor') {
-                header('Location: /admin/dashboard.php');
+                header('Location: '.BASE_URL.'/admin/dashboard.php');
             } else {
-                header('Location: /');
+                header('Location: '.BASE_URL.'/');
             }
             exit;
         }
@@ -101,7 +101,7 @@ include __DIR__ . '/includes/header.php';
 
         <div style="text-align:center; margin-top:20px; font-size:14px; color:var(--muted);">
             Não tens conta?
-            <a href="/registo.php" style="color:var(--dark); font-weight:600;">Criar conta de cliente</a>
+            <a href="<?= BASE_URL ?>/registo.php" style="color:var(--dark); font-weight:600;">Criar conta de cliente</a>
         </div>
 
         <?php if ($hint !== 'cliente'): ?>
@@ -112,7 +112,7 @@ include __DIR__ . '/includes/header.php';
     </form>
 
     <div style="text-align:center; margin-top:24px;">
-        <a href="/" class="text-muted" style="font-size:13px;">← Voltar à loja</a>
+        <a href="<?= BASE_URL ?>" class="text-muted" style="font-size:13px;">← Voltar à loja</a>
     </div>
 
     <!-- Credenciais de teste (apenas para desenvolvimento) -->

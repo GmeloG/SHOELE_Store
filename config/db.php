@@ -3,10 +3,11 @@
  * Configuração e ligação à base de dados via PDO
  */
 
-define('DB_HOST',    getenv('DB_HOST') ?: 'db');
-define('DB_NAME',    getenv('DB_NAME') ?: 'sneakerstock');
-define('DB_USER',    getenv('DB_USER') ?: 'sneaker_user');
-define('DB_PASS',    getenv('DB_PASS') ?: 'sneaker_pass');
+define('BASE_URL',   '/~1211710/modsi/SHOELE_Store');
+define('DB_HOST',    getenv('DB_HOST') ?: 'localhost');
+define('DB_NAME',    getenv('DB_NAME') ?: '1211710');
+define('DB_USER',    getenv('DB_USER') ?: '1211710');
+define('DB_PASS',    getenv('DB_PASS') ?: 'NDY4N2U5Yjg3Y2Ex');
 define('DB_CHARSET', 'utf8mb4');
 
 /**

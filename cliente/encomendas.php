@@ -129,7 +129,7 @@ include __DIR__ . '/../includes/header.php';
                     <?php foreach ($detailItems as $i): ?>
                         <tr>
                             <td>
-                                <a href="/produto.php?id=<?= $i['product_id'] ?>" style="font-weight:700">
+                                <a href="<?= BASE_URL ?>/produto.php?id=<?= $i['product_id'] ?>" style="font-weight:700">
                                     <?= e($i['brand'] . ' ' . $i['model']) ?>
                                 </a>
                             </td>
@@ -196,7 +196,7 @@ include __DIR__ . '/../includes/header.php';
             <?php endif; ?>
 
             <div style="padding:16px 24px;">
-                <a href="/cliente/encomendas.php" class="btn btn-outline btn-sm">← Voltar às encomendas</a>
+                <a href="<?= BASE_URL ?>/cliente/encomendas.php" class="btn btn-outline btn-sm">← Voltar às encomendas</a>
             </div>
         </div>
     <?php endif; ?>
@@ -207,7 +207,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="icon">📦</div>
             <h3>Ainda não fizeste nenhuma encomenda</h3>
             <p>Explora o nosso catálogo e faz a tua primeira compra!</p>
-            <a href="/" class="btn btn-red btn-lg mt-3">Ver Catálogo</a>
+            <a href="<?= BASE_URL ?>" class="btn btn-red btn-lg mt-3">Ver Catálogo</a>
         </div>
     <?php else: ?>
         <div class="table-card">
@@ -281,7 +281,7 @@ include __DIR__ . '/../includes/header.php';
         confirmBtn.textContent = 'A confirmar...';
 
         try {
-            var res  = await fetch('/api/confirmar_encomenda.php', {
+            var res  = await fetch('<?= BASE_URL ?>/api/confirmar_encomenda.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ order_id: orderId, feedback: feedback, avaliacao: avaliacao ? +avaliacao : null })
